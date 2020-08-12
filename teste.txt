@@ -1,0 +1,19 @@
+
+#
+#  pequeno teste da linguagem toy
+#
+
+main () {
+     a = 5;
+     b = -34;
+     c = 23;
+
+     delta = b*b - 4*a*c;
+     if (delta < 0) {
+        print(a);
+     } else {
+        print(b1);
+        raiz = -b + delta / (2*a);
+        print(raiz);
+     }
+}

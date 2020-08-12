@@ -11,11 +11,16 @@ reserved_words = {
     "do" : "DO",
     "for" : "FOR",
     "foreach" : "FOREACH",
+    "while" : "WHILE",
+    "string" : "STRING",
     "break" : "BREAK",
     "continue" : "CONTINUE",
     "return" : "RETURN",
     "new" : "NEW",
-    "nil" : "NIL"
+    "nil" : "NIL",
+    "in"  : "IN",
+    "def" : "DEF",
+    "var" : "VAR"
 }
 
 # Tokens
@@ -35,6 +40,7 @@ tokens = [
     "COLON",
     "COLONCOLON",
     "NOT",
+    "NOTEQUALS",
     "TERNARYIF",
     "MOD",
     "EQUALS",
@@ -44,8 +50,9 @@ tokens = [
     "LESS",
     "LESSEQUALS",
     "LESSLESS",
+    "BINARYOR",
     "OR",
-    "AMPERSAND",
+    "BINARYAND",
     "AMPERSANDLESS",
     "AND",
     "CIRCUMFLEX",
@@ -60,7 +67,9 @@ tokens = [
     "PLUSEQUALS",
     "MINUSEQUALS",
     "TIMESEQUALS",
-    "DIVEQUALS"] + list(reserved_words.values())
+    "DIVEQUALS",
+    "NEWLINE",
+    "ERROR"] + list(reserved_words.values())
 
 def t_ID(t):
     r'[a-zA-Z_][a-zA-Z_0-9]*'
@@ -97,8 +106,9 @@ t_GREATERGREATER        = r'>>'
 t_LESS                  = r'<'
 t_LESSEQUALS            = r'<='
 t_LESSLESS              = r'<<'
+t_BINARYOR              = r'\|'
 t_OR                    = r'\|\|'
-t_AMPERSAND             = r'&'
+t_BINARYAND             = r'&'
 t_AMPERSANDLESS         = r'&<'
 t_AND                   = r'&&'
 t_CIRCUMFLEX            = r'\^'
@@ -119,7 +129,7 @@ t_TIMESEQUALS           = r'\*='
 t_DIVEQUALS             = r'/='
 
 # Define uma ExpReg para tratar line numbers
-def t_newline(t):
+def t_NEWLINE(t):
     r'\n+'
     t.lexer.lineno += len(t.value)
 
@@ -127,16 +137,19 @@ def t_newline(t):
 t_ignore_SPACES = r'[ \t]+'     # espacos brancos
 t_ignore_COMMENT = r'\#.*'  # comentarios
 
+
 # Error handling rule
 def t_error(t):
     t.type = 'ERROR'
     t.value = t.value[0]
     t.lexer.skip(1)
     return t
-
+"""
 # EOF handling rule
-def t_eof(t):
+def t_EOF(t):
+    r''
     return None
+"""
 
 lexer = lex.lex()
 
