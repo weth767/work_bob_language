@@ -20,7 +20,8 @@ reserved_words = {
     "nil" : "NIL",
     "in"  : "IN",
     "def" : "DEF",
-    "var" : "VAR"
+    "var" : "VAR",
+    "print" : "PRINT"
 }
 
 # Tokens
@@ -85,7 +86,7 @@ def t_NUMBER(t):
 t_ATRIB                 = r'='
 t_COMMA                 = r','
 t_SEMICOLON             = r';'
-t_ARROW                 = r'->'
+t_ARROW                 = r'\->'
 t_OPENPARENT            = r'\('
 t_CLOSEPARENT           = r'\)'
 t_OPENBRACE             = r'\{'
@@ -117,14 +118,14 @@ t_TILDE                 = r'~'
 
 # Arithmetic Operators
 t_PLUS                  = r'\+'
-t_MINUS                 = r'-'
+t_MINUS                 = r'\-'
 t_TIMES                 = r'\*'
 t_DIV                   = r'/'
 
 t_PLUSPLUS              = r'\+\+'
-t_MINUSMINUS            = r'--'
+t_MINUSMINUS            = r'\-\-'
 t_PLUSEQUALS            = r'\+='
-t_MINUSEQUALS           = r'-='
+t_MINUSEQUALS           = r'\-='
 t_TIMESEQUALS           = r'\*='
 t_DIVEQUALS             = r'/='
 
@@ -144,24 +145,21 @@ def t_error(t):
     t.value = t.value[0]
     t.lexer.skip(1)
     return t
-"""
+
 # EOF handling rule
-def t_EOF(t):
+def t_eof(t):
     r''
     return None
-"""
+
 
 lexer = lex.lex()
 
 if __name__ == '__main__':
 
-    data = '''
-        3 + 4 * 10. # comentario 45 45
-        + -20 *2 / / 77
-        teste if reader read
-        while ; ==>
-        '''
-    lexer.input(data)
+    filename = 'test3.bob'
+    file = open(filename, 'r')
+    text = file.read()
+    lexer.input(text)
 
     while True:
         tok = lexer.token()

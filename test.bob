@@ -1,0 +1,8 @@
+factorial(n){
+    return n == 1 ? 1 : n * factorial(n-1) ;
+}
+
+main(; i){
+    for (i = 1; i <= 10; ++i)
+        print(i," factorial is ",factorial(i),"\n");
+}

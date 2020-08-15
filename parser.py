@@ -40,66 +40,84 @@ precedence = (
      )
 
 
-def p_Prog(p):
+def p_Program(p):
     'Program : DefinitionList'
+    pass
+    """
     p[0] = p[1]
+    """
 
-
-"""
-Perguntar se em caso de recursão a esquerda, mantem-se o P[0]
-Está dando erro de index out of range no P[2]
-"""
 def p_DefinitionList(p):
     """
     DefinitionList : DefinitionList Definition 
                    | empty
     """
+    pass
+    """
     if (len(p) == 2):
         p[0] = NodeAST(AST.COMM_SEQ, [p[1], p[0]])
     else:
         pass
+    """
 
 def p_Definition(p):
     """Definition : ClassDefinition 
                   | FunctionDefinition"""
+    pass
+    """              
     p[0] = p[1]
+    """
 
 def p_ClassDefinition(p):
     'ClassDefinition : CLASS ID OptClassBase OPENBRACE MemberList CLOSEBRACE'
+    pass
+    """
     id = NodeAST(AST.ID, [p[2]])
     children = ['CLASS', id, p[3], p[5]]
     p[0] = NodeAST(AST.COMM_SEQ, children)
+    """
 
 def p_FunctionDefinition(p):
     'FunctionDefinition : DEF OptEnvClass ID OPENPARENT OptParamList CLOSEPARENT Block'
+    pass
+    """
     id = NodeAST(AST.ID, [p[3]])
     children = ['DEF',p[2], id, p[5], p[7]]
     p[0] = NodeAST(AST.COMM_SEQ, children)
+    """
 
 def p_OptClassBase(p):
     """OptClassBase : COLON ID 
                     | empty"""
+    pass
+    """                
     if (len(p) == 2):
         id = NodeAST(AST.ID, [p[1]])
         children = ["COLON", id]
         p[0] = NodeAST(AST.COMM_SEQ, children)
     else:
         pass
+    """
 
 def p_MemberList(p):
     """
     MemberList : MemberList MemberDefinition 
                | empty
     """
+    pass
+    """
     if (len(p) == 2):
         p[0] = p[1].children + [p[2]]
     else:
         pass
+    """
 
 def p_MemberDefinition(p):
     """
     MemberDefinition : OptModifier VAR VariableList SEMICOLON 
                      | OptModifier DEF ID OPENPARENT OptFormArgsList CLOSEPARENT SEMICOLON
+    """
+    pass
     """
     if (len(p) == 3):
         children = [p[1], "VAR", p[3], "SEMICOLON"]
@@ -108,6 +126,7 @@ def p_MemberDefinition(p):
         id = NodeAST(AST.ID, [p[3]])
         children = [p[1], "DEF", id, p[5], "SEMICOLON"]
         p[0] = NodeAST(AST.COMM_SEQ, children)
+    """
 
 
 def p_OptModifier(p):
@@ -115,25 +134,33 @@ def p_OptModifier(p):
     OptModifier : STATIC 
                 | empty
     """
+    pass
+    """
     if (len(p) == 1):
         p[0] = NodeAST(AST.EXPRESSION)
     else:
         pass
+    """
 
 def p_VariableList(p):
     """
     VariableList : VariableList COMMA Variable 
                  | Variable
     """
+    pass
+    """
     if (len(p) == 3):
         p[0] = p[1].children + [p[3]]
     else:
         p[0] = p[1]
+    """
 
 def p_Variable(p):
     """
     Variable : ID 
              | ID OPENSQUAREBRACKET NUMBER CLOSESQUAREBRACKET
+    """
+    pass
     """
     if (len(p) == 4):
         id = NodeAST(AST.ID, [p[1]])
@@ -146,55 +173,75 @@ def p_Variable(p):
         p[0] = NodeAST(AST.EXPRESSION, children)
     else:
         p[0] = NodeAST(AST.ID)
+    """
 
 def p_OptFormArgsList(p):
     """
-    OptFormArgsList : OptArgsList 
+    OptFormArgsList : FormArgsList 
                     | empty
+    """
+    pass
     """
     if (len(p) == 1):
         p[0] = p[1]
     else:
         pass
+    """
 
 def p_OptArgsList(p):
     """
     OptArgsList : OptArgsList COMMA ID 
                 | ID
     """
+    pass
+    """
     if (len(p) == 3):
         id = NodeAST(AST.ID, [p[3]])
         p[0] = p[1].children + [id]
     else:
         p[0] = NodeAST(AST.ID)
+    """
 
 def p_OptEnvClass(p):
     """
     OptEnvClass : ID COLONCOLON 
                 | empty
     """
+    pass
+    """
     if (len(p) == 2):
         p[0] = NodeAST(AST.ID)
     else:
         pass
+    """
 
 def p_OptParamList(p):
     'OptParamList : OptFormArgsList OptTempList'
+    pass
+    """
     children = [p[1],p[2]]
     p[0] = NodeAST(AST.COMM_SEQ, children)
-    
+    """
+
 def p_OptTempList(p):
     """
     OptTempList : SEMICOLON FormArgsList 
                 | empty
     """
+    pass
+    """
     if (len(p) == 2):
         p[0] = p[2]
+    else:
+        pass
+    """
 
 def p_FormArgsList(p):
     """
     FormArgsList : FormArgsList COMMA ID 
                  | ID
+    """
+    pass
     """
     if (len(p) == 3):
         id = NodeAST(AST.ID, [p[3]])
@@ -202,22 +249,30 @@ def p_FormArgsList(p):
         p[0] = p[1].children + children
     else:
         p[0] = NodeAST(AST.ID, [p[1]])
+    """
 
 
 def p_Block(p):
     'Block : OPENBRACE CommandList CLOSEBRACE'
+    pass
+    """
     p[0] = p[2]
+    """
 
 def p_CommandList(p):
     """
     CommandList : CommandList Command 
                 | empty
     """
+    pass
+
+    """
     if (len(p) == 2):
         children = [p[2]]
         p[0] = p[1].children + children
     else:
         pass
+    """
 
 def p_Command(p):
     """
@@ -240,10 +295,13 @@ def p_OptExp(p):
     OptExp : Exp 
            | empty
     """
+    pass
+    """
     if (len(p) == 1):
         p[0] = p[1]
     else:
         pass
+    """
 
 def p_Exp(p):
     """
@@ -293,32 +351,41 @@ def p_OptArgs(p):
     OptArgs : Args 
            | empty
     """
+    pass
+    """
     if (len(p) == 1):
         p[0] = p[1]
     else:
         pass
+    """
 
 def p_Args(p):
     """
     Args : Args COMMA Exp 
          | Exp
     """
+    pass
+    """
     if (len(p) == 3):
         children = [p[1], "COMMA", p[3]]
         p[0] = NodeAST(AST.EXPRESSION, children)
     else:
         p[0] = p[1]
+    """
 
 def p_LeftVal(p):
     """
     LeftVal : ID 
             | ID OPENSQUAREBRACKET Exp CLOSESQUAREBRACKET
     """
+    pass
+    """
     if (len(p) == 1):
         p[0] = NodeAST(AST.ID, [p[1]])
     else:
         children = [NodeAST(AST.ID, [p[1]]), p[3]]
         p[0] = NodeAST(AST.EXPRESSION, children)
+    """
 
 def p_empty(p):
     'empty :'
@@ -336,7 +403,7 @@ parser = yacc.yacc()
 
 
 if __name__ == '__main__':
-    filename = 'teste.txt'
+    filename = 'test3.bob'
     file = open(filename, 'r')
     text = file.read()
 
