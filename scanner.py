@@ -12,7 +12,6 @@ reserved_words = {
     "for" : "FOR",
     "foreach" : "FOREACH",
     "while" : "WHILE",
-    "string" : "STRING",
     "break" : "BREAK",
     "continue" : "CONTINUE",
     "return" : "RETURN",
@@ -21,13 +20,15 @@ reserved_words = {
     "in"  : "IN",
     "def" : "DEF",
     "var" : "VAR",
-    "print" : "PRINT"
 }
 
 # Tokens
 tokens = [
     "ID",
     "NUMBER",
+    "INT",
+    "FLOAT",
+    "STRING",
     "ATRIB",
     "COMMA",
     "SEMICOLON",
@@ -54,10 +55,7 @@ tokens = [
     "BINARYOR",
     "OR",
     "BINARYAND",
-    "AMPERSANDLESS",
     "AND",
-    "CIRCUMFLEX",
-    "CIRCUMFLEXLESS",
     "TILDE",
     "PLUS",
     "MINUS",
@@ -68,9 +66,7 @@ tokens = [
     "PLUSEQUALS",
     "MINUSEQUALS",
     "TIMESEQUALS",
-    "DIVEQUALS",
-    "NEWLINE",
-    "ERROR"] + list(reserved_words.values())
+    "DIVEQUALS"] + list(reserved_words.values())
 
 def t_ID(t):
     r'[a-zA-Z_][a-zA-Z_0-9]*'
@@ -78,8 +74,18 @@ def t_ID(t):
     return t
 
 def t_NUMBER(t):
-    r'\d+'
-    t.value = int(t.value)
+    r'\d+(\.\d+)?'
+    if (str(t.value).count(".") >= 1):
+        t.value = float(t.value)
+        t.type = 'FLOAT'
+    else:
+        t.value = int(t.value)
+        t.type = 'INT'
+    return t
+
+def t_STRING(t):
+    r'["]([^"\\\n]|\\.|\\\n)*["]'
+    t.value = str(t.value)
     return t
 
 # Simbols 
@@ -110,10 +116,7 @@ t_LESSLESS              = r'<<'
 t_BINARYOR              = r'\|'
 t_OR                    = r'\|\|'
 t_BINARYAND             = r'&'
-t_AMPERSANDLESS         = r'&<'
 t_AND                   = r'&&'
-t_CIRCUMFLEX            = r'\^'
-t_CIRCUMFLEXLESS        = r'\^<'
 t_TILDE                 = r'~'
 
 # Arithmetic Operators
@@ -130,12 +133,12 @@ t_TIMESEQUALS           = r'\*='
 t_DIVEQUALS             = r'/='
 
 # Define uma ExpReg para tratar line numbers
-def t_NEWLINE(t):
+def t_newline(t):
     r'\n+'
     t.lexer.lineno += len(t.value)
 
 # Define ExpRegs para descartar partes da entrada
-t_ignore_SPACES = r'[ \t]+'     # espacos brancos
+t_ignore_SPACES = r'[ \t]+' # espacos brancos
 t_ignore_COMMENT = r'\#.*'  # comentarios
 
 
@@ -156,7 +159,7 @@ lexer = lex.lex()
 
 if __name__ == '__main__':
 
-    filename = 'test3.bob'
+    filename = 'test2.bob'
     file = open(filename, 'r')
     text = file.read()
     lexer.input(text)

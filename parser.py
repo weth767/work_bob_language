@@ -1,6 +1,7 @@
 import ply.yacc as yacc
 from scanner import tokens, lexer
 from enum import Enum
+import logging
 
 class AST(Enum):
     BLOCK = 1
@@ -21,24 +22,24 @@ class NodeAST:
         else:
             self.children = list()
 
-precedence = (
-     ('left', 'OPENPARENT', 'CLOSEPARENT', 'OPENSQUAREBRACKET', 'CLOSESQUAREBRACKET', 'ARROW'),
-     ('right', 'PLUSPLUS', 'MINUSMINUS', 'NOT', 'TILDE'),
-     ('left', 'TIMES', 'DIV', 'MOD'),
-     ('left', 'PLUS', 'MINUS'),
-     ('left', 'LESSLESS', 'GREATERGREATER'),
-     ('left', 'LESS', 'LESSEQUALS', 'GREATEREQUALS', 'GREATER'),
-     ('left', 'EQUALS', 'NOTEQUALS'),
-     ('left', 'BINARYAND'),
-     ('left', 'CIRCUMFLEX'),
-     ('left', 'BINARYOR'),
-     ('left', 'AND'),
-     ('left', 'OR'),
-     ('right', 'TERNARYIF', 'COLON'),
-     ('right', 'ATRIB'),
-     ('left', 'COMMA'),
-     )
 
+precedence = ( 
+    ('left', 'COMMA'),
+    ('right', 'ATRIB', 'PLUSEQUALS', 'MINUSEQUALS', 'TIMESEQUALS', 'DIVEQUALS'),
+    ('right', 'TERNARYIF', 'COLON'),
+    ('left', 'OR'),
+    ('left', 'AND'),
+    ('left', 'BINARYOR'),
+    ('left', 'BINARYAND'),
+    ('left', 'EQUALS', 'NOTEQUALS'),
+    ('nonassoc', 'LESS', 'LESSEQUALS', 'GREATEREQUALS', 'GREATER'),
+    ('left', 'LESSLESS', 'GREATERGREATER'),
+    ('left', 'PLUS', 'MINUS'),
+    ('left', 'TIMES', 'DIV', 'MOD'),
+    ('right', 'UMINUS', 'UPLUS'),
+    ('right', 'PLUSPLUS', 'MINUSMINUS', 'NOT', 'TILDE'),
+    ('left', 'OPENPARENT', 'CLOSEPARENT', 'OPENSQUAREBRACKET', 'CLOSESQUAREBRACKET', 'ARROW') 
+)
 
 def p_Program(p):
     'Program : DefinitionList'
@@ -188,20 +189,6 @@ def p_OptFormArgsList(p):
         pass
     """
 
-def p_OptArgsList(p):
-    """
-    OptArgsList : OptArgsList COMMA ID 
-                | ID
-    """
-    pass
-    """
-    if (len(p) == 3):
-        id = NodeAST(AST.ID, [p[3]])
-        p[0] = p[1].children + [id]
-    else:
-        p[0] = NodeAST(AST.ID)
-    """
-
 def p_OptEnvClass(p):
     """
     OptEnvClass : ID COLONCOLON 
@@ -335,12 +322,14 @@ def p_Exp(p):
         | LeftVal PLUSPLUS
         | NOT Exp
         | TILDE Exp
+        | MINUS Exp %prec UMINUS
+        | PLUS Exp %prec UPLUS
         | NEW ID OPENPARENT OptArgs CLOSEPARENT
         | ID OPENPARENT OptArgs CLOSEPARENT
         | Exp ARROW ID OPENPARENT OptArgs CLOSEPARENT
         | ID
         | ID OPENSQUAREBRACKET Exp CLOSESQUAREBRACKET
-        | NUMBER
+        | Number
         | STRING
         | NIL
     """
@@ -387,6 +376,13 @@ def p_LeftVal(p):
         p[0] = NodeAST(AST.EXPRESSION, children)
     """
 
+def p_Number(p):
+    """
+    Number : FLOAT 
+           | INT 
+    """
+    pass
+
 def p_empty(p):
     'empty :'
     pass
@@ -399,11 +395,17 @@ def p_error(p):
         print("Syntax error at token", p.type, "line=", p.lineno)
 
 # Build the parser
-parser = yacc.yacc()
-
+logging.basicConfig(
+     level = logging.DEBUG,
+     filename = "parselog.txt",
+     filemode = "w",
+     format = "%(filename)10s:%(lineno)4d:%(message)s"
+)
+log = logging.getLogger()
+parser = yacc.yacc(debug=True, debuglog=log)
 
 if __name__ == '__main__':
-    filename = 'test3.bob'
+    filename = 'test2.bob'
     file = open(filename, 'r')
     text = file.read()
 
