@@ -1,3 +1,9 @@
+"""
+Desenvolvido por: 
+Alunos: João Paulo de Souza RA:0035329
+        Leandro Souza Pinheiro RA:0015137 
+
+"""
 import ply.lex as lex
 
 # Como será indentificado a classe principal ou método principal ?
@@ -25,7 +31,6 @@ reserved_words = {
 # Tokens
 tokens = [
     "ID",
-    "NUMBER",
     "INT",
     "FLOAT",
     "STRING",
@@ -73,14 +78,14 @@ def t_ID(t):
     t.type = reserved_words.get(t.value, 'ID')  # Check for reserved words
     return t
 
-def t_NUMBER(t):
-    r'\d+(\.\d+)?'
-    if (str(t.value).count(".") >= 1):
-        t.value = float(t.value)
-        t.type = 'FLOAT'
-    else:
-        t.value = int(t.value)
-        t.type = 'INT'
+def t_FLOAT(t):
+    r'\d+(\.\d*)'
+    t.value = float(t.value)
+    return t
+
+def t_INT(t):
+    r'\d+'
+    t.value = int(t.value)
     return t
 
 def t_STRING(t):
