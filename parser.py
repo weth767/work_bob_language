@@ -107,14 +107,12 @@ def p_MemberList(p):
     MemberList : MemberList MemberDefinition 
                | empty
     """
-    pass
-    """
+    children = None
     if (len(p) == 3):
-        p[0] = p[1].children + [p[2]]
+        children = p[1].children + [p[2]]
     else:
-        pass
-    pass
-    """
+        children = list()
+    p[0] = NodeAST(AST.COMM_SEQ, children)
 
 def p_MemberDefinition(p):
     """
@@ -211,14 +209,13 @@ def p_CommandList(p):
     CommandList : CommandList Command 
                 | empty
     """
-    pass
-    """
+    children = None
     if len(p) == 3:
         children = p[1].children + [p[2]]
-        p[0] = NodeAST(AST.COMM_SEQ, children)
     else:
-        pass
-    """
+        children = list()
+    p[0] = NodeAST(AST.COMM_SEQ, children)
+    
 
 def p_Command(p):
     """
