@@ -13,10 +13,13 @@ class AST(Enum):
     BLOCK = 1
     COMMAND = 2
     EXPRESSION = 3
-    COMM_SEQ = 4
-    NUMBER = 5
-    STRING = 6
-    ID = 7
+    # approaching the command
+    ATC = 4
+    FLOAT = 5
+    INT = 6
+    STRING = 7
+    ID = 8
+    MOD_CLFUN = 9
 
 class NodeAST:
     def __init__(self, type, children=None):
@@ -61,7 +64,7 @@ def p_DefinitionList(p):
                    | empty
     """
     if (len(p) == 3):
-        p[0] = NodeAST(AST.COMM_SEQ, [p[1], p[0]])
+        p[0] = NodeAST(AST.ATC, [p[1], p[0]])
     else:
         pass
 
@@ -84,7 +87,7 @@ def p_ClassDefinition(p):
         id2 = NodeAST(AST.ID, [p[4]])
         children = ['CLASS', id, p[3], id2, p[6]]
 
-    p[0] = NodeAST(AST.COMM_SEQ, children)    
+    p[0] = NodeAST(AST.COMMAND, children)    
 
 def p_FunctionDefinition(p):
     """
@@ -100,7 +103,7 @@ def p_FunctionDefinition(p):
         id2 = NodeAST(AST.ID, [p[4]])
         children = ['DEF', id, id2, p[6], p[8]]
 
-    p[0] = NodeAST(AST.COMM_SEQ, children)
+    p[0] = NodeAST(AST.COMMAND, children)
 
 def p_MemberList(p):
     """
@@ -112,7 +115,7 @@ def p_MemberList(p):
         children = p[1].children + [p[2]]
     else:
         children = list()
-    p[0] = NodeAST(AST.COMM_SEQ, children)
+    p[0] = NodeAST(AST.ATC, children)
 
 def p_MemberDefinition(p):
     """
@@ -122,12 +125,12 @@ def p_MemberDefinition(p):
     children = None
     if len(p) == 5:
         children = [p[1], "VAR", p[3]]
-        p[0] = NodeAST(AST.COMM_SEQ, children)
+        p[0] = NodeAST(AST.COMMAND, children)
     else:
         id = NodeAST(AST.ID, [p[3]])
         children = [p[1], "DEF", id, p[5]]
     
-    p[0] = NodeAST(AST.COMM_SEQ, children)
+    p[0] = NodeAST(AST.COMMAND, children)
 
 def p_OptModifier(p):
     """
@@ -135,7 +138,7 @@ def p_OptModifier(p):
                 | empty
     """
     if len(p) == 2:
-        p[0] = NodeAST(AST.EXPRESSION, "STATIC")
+        p[0] = NodeAST(AST.MOD_CLFUN, "STATIC")
     else:
         pass
 
@@ -148,7 +151,7 @@ def p_VariableList(p):
         p[0] = p[1]
     else:
         children = list(p[1].children) + [p[3]]
-        p[0] = NodeAST(AST.COMM_SEQ, children)
+        p[0] = NodeAST(AST.ATC, children)
 
 def p_Variable(p):
     """
@@ -160,7 +163,7 @@ def p_Variable(p):
     else:
         id = NodeAST(AST.ID, [p[1]])
         children = [id, p[3]]
-        p[0] = NodeAST(AST.COMM_SEQ, children)
+        p[0] = NodeAST(AST.COMMAND, children)
 
 def p_OptFormArgsList(p):
     """
@@ -175,7 +178,7 @@ def p_OptFormArgsList(p):
 def p_OptParamList(p):
     'OptParamList : OptFormArgsList OptTempList'
     children = [p[1], p[2]]
-    p[0] = NodeAST(AST.COMM_SEQ, children)
+    p[0] = NodeAST(AST.ATC, children)
 
 def p_OptTempList(p):
     """
@@ -197,7 +200,7 @@ def p_FormArgsList(p):
     else:
         id = NodeAST(AST.ID, p[3])
         children = list(p[1].children) + [id]
-        p[0] = NodeAST(AST.COMM_SEQ, children)
+        p[0] = NodeAST(AST.ATC, children)
 
 
 def p_Block(p):
@@ -214,7 +217,7 @@ def p_CommandList(p):
         children = p[1].children + [p[2]]
     else:
         children = list()
-    p[0] = NodeAST(AST.COMM_SEQ, children)
+    p[0] = NodeAST(AST.ATC, children)
     
 
 def p_Command(p):
@@ -238,7 +241,7 @@ def p_Command(p):
         if p[1] in reserved_words:
             p[0] = NodeAST(AST.COMMAND, p[1])
         else:
-            p[0] = NodeAST(AST.COMM_SEQ, p[1])
+            p[0] = NodeAST(AST.ATC, p[1])
     elif len(p) == 6:
         # WHILE OPENPARENT OptExp CLOSEPARENT Command
         # FOREACH ID IN ID Command
@@ -328,10 +331,10 @@ def p_Exp(p):
     if len(p) == 2:
         if isinstance(p[1], int):
             children = ['INT', str(p[1])]
-            p[0] = NodeAST(AST.NUMBER, children)
+            p[0] = NodeAST(AST.INT, children)
         elif isinstance(p[1], float):
             children = ['FLOAT', str(p[1])]
-            p[0] = NodeAST(AST.NUMBER, children)
+            p[0] = NodeAST(AST.FLOAT, children)
         elif isinstance(p[1], str):
             children = ['STRING', p[1]]
             p[0] = NodeAST(AST.STRING, children)
@@ -400,7 +403,7 @@ def p_Args(p):
         p[0] = p[1]
     else:
         children = p[1].children + [p[3]]
-        p[0] = NodeAST(AST.COMM_SEQ, children)
+        p[0] = NodeAST(AST.ATC, children)
 
 
 def p_LeftVal(p):
@@ -413,7 +416,7 @@ def p_LeftVal(p):
     else:
         id = NodeAST(AST.ID, p[1])
         children = [id, p[3]]
-        p[0] = NodeAST(AST.COMM_SEQ, children)
+        p[0] = NodeAST(AST.COMMAND, children)
 
 def p_empty(p):
     'empty :'
