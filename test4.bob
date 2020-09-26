@@ -1,0 +1,46 @@
+#
+#  pequeno teste da linguagem bob
+#
+
+class Baskara:Math {
+    static var instanciasCriadas;
+    var a, b, c;
+    static def inicializa();
+    def Baskara(a, b, c);
+    def calculaRaizes();
+}
+
+def Baskara::inicializa() {
+    instanciasCriadas = 0;
+}
+
+def main (; a, b, c) {
+     Baskara->inicializa();
+
+     a = scanf("float");
+     b = scanf("float");
+     c = scanf("float");
+     func = Baskara(a,b,c);
+
+     func->calculaRaizes();
+}
+
+def Baskara::Baskara(x, y, z) {
+    instanciasCriadas += 1;
+    a = x;
+    b = y;
+    c = z;
+}
+
+def Baskara::calculaRaizes(; delta, raiz1, raiz2)
+{
+     delta = b*b - 4*a*c;
+     if (delta < 0) {
+        print("nao tem raiz real\n");
+     } else {
+        raiz1 = -b + delta / (2*a);
+        raiz2 = -b - delta / (2*a);
+        print("raiz1 = \"", raiz1, "\"\n");
+        print("raiz2 = \"", raiz2, "\"\n");
+     }
+}

@@ -17,3 +17,10 @@ main () {
         print(raiz);
      }
 }
+
+
+def execute(filename):
+    file = open(filename, 'r')
+    text = file.read()
+
+    return parser.parse(text, lexer=lexer)

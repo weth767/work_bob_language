@@ -64,7 +64,7 @@ def p_DefinitionList(p):
                    | empty
     """
     if (len(p) == 3):
-        p[0] = NodeAST(AST.ATC, [p[1], p[0]])
+        p[0] = NodeAST(AST.ATC, [p[1], p[2]])
     else:
         pass
 
@@ -196,12 +196,12 @@ def p_FormArgsList(p):
                  | ID
     """
     if len(p) == 2:
-        p[0] = NodeAST(AST.ID, p[1])
+        children = [NodeAST(AST.ID, [p[1]])]
+        p[0] = NodeAST(AST.ATC, children)
     else:
         id = NodeAST(AST.ID, p[3])
         children = list(p[1].children) + [id]
         p[0] = NodeAST(AST.ATC, children)
-
 
 def p_Block(p):
     'Block : OPENBRACE CommandList CLOSEBRACE'
@@ -439,10 +439,7 @@ logging.basicConfig(
 log = logging.getLogger()
 parser = yacc.yacc(debug=True, debuglog=log)
 
-if __name__ == '__main__':
-    filename = 'test.bob'
+def execute(filename):
     file = open(filename, 'r')
     text = file.read()
-
-    result = parser.parse(text, lexer=lexer)
-    print(result)
+    return parser.parse(text, lexer=lexer)

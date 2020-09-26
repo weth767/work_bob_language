@@ -164,7 +164,7 @@ lexer = lex.lex()
 
 if __name__ == '__main__':
 
-    filename = 'test2.bob'
+    filename = 'test.bob'
     file = open(filename, 'r')
     text = file.read()
     lexer.input(text)
