@@ -1,30 +1,35 @@
-from parser import execute
-from typing import List
+from parser import execute, NodeAST
 
-classHieraquy = dict()
+classHierarchy = dict()
+functionHierarchy = dict()
+stack = []
 
 # ainda não funcionando
 def walkingByTree(tree):
-    if (tree is None):
+    if tree is None:
         return
-    currentNode = tree
-    print(vars(currentNode))
-    if type(currentNode) is list:
-        print("")
     else:
-        currentChildren = currentNode.__dict__['children']
-        print("filhos: ", currentChildren[0].__dict__['children'][0].__dict__)
-        print("")
-        if (currentChildren[0] == "class" or currentChildren[0] == "CLASS"):
-            superClass = None
-            if len(currentChildren) == 5:
-                superClass = currentChildren[3]
-            classHieraquy[currentChildren[1]] = [(superClass, [])]
-        return walkingByTree(currentChildren[0])
+        if isinstance(tree, NodeAST):
+            children = tree.__dict__['children']
+            for i in children:
+                if isinstance(children[i], NodeAST):
+                    currentChild = children[i].__dict__
+                    if 'class' in currentChild['children'].keys():
+                        node = currentChild['children']
+                        className = node['idClass'].__dict__['children']['id']
+                        superClassName = None
+                        if 'idSuperClass' in node.keys():
+                            superClassName = node['idSuperClass'].__dict__['children']['id']
+                        if superClassName in classHierarchy.keys():
+                            classHierarchy[superClassName][1].append(className)
+                        classHierarchy[className] = (superClassName, [])
+                    #print(children[i].__dict__)
+                    walkingByTree(children[i])  
+                
 
 if __name__ == "__main__":
-    result = execute("test4.bob")
+    tree = execute("test4.bob")
     # print(result.__dict__['children'][1].__dict__['children'][4]
     # .__dict__['children'][0].__dict__['children'].__dict__['children'][1].__dict__)
-    walkingByTree(result)
-    #print(classHieraquy)
+    walkingByTree(tree)
+    print(classHierarchy)
