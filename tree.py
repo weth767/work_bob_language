@@ -1,5 +1,12 @@
 from parser import execute, NodeAST, AST
 
+"""
+# Desenvolvido por alunos do IFMG Campus Formiga, Curso de Ciência da Computação
+# João Paulo de Souza RA: 0035329
+# Leandro Souza Pinheiro RA: 0015137
+
+"""
+
 classHierarchy = dict()
 functionHierarchy = dict()
 classTable = dict()

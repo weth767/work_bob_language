@@ -1,7 +1,7 @@
 """
-Desenvolvido por: 
-Alunos: João Paulo de Souza RA:0035329
-        Leandro Souza Pinheiro RA:0015137 
+# Desenvolvido por alunos do IFMG Campus Formiga, Curso de Ciência da Computação
+# João Paulo de Souza RA: 0035329
+# Leandro Souza Pinheiro RA: 0015137
 
 """
 import ply.yacc as yacc
