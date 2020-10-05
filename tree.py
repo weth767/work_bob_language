@@ -12,7 +12,7 @@ functionHierarchy = dict()
 classTable = dict()
 
 # método para montar a hierarquia de classe
-def walkingByTreeToMountClassHierarchy(tree):
+def walkingForTreeToMountClassHierarchy(tree):
     if tree is None:
         return
     else:
@@ -30,8 +30,7 @@ def walkingByTreeToMountClassHierarchy(tree):
                         if superClassName in classHierarchy.keys():
                             classHierarchy[superClassName][1].append(className)
                         classHierarchy[className] = (superClassName, [])
-                    #print(children[i].__dict__)
-                    walkingByTreeToMountClassHierarchy(children[i]) 
+                    walkingForTreeToMountClassHierarchy(children[i]) 
 
 def walkingForVariableNamesMember(tree, className, isStatic):
     if tree is None:
@@ -87,7 +86,7 @@ def walkingForFunctionMember(tree, className):
                 walkingForFunctionMember(children[i], className)
 
 # método para montar a tabela de classes
-def walkingByTreeToMountClassTable(tree):
+def walkingForTreeToMountClassTable(tree):
     if tree is None:
         return
     else:
@@ -102,12 +101,74 @@ def walkingByTreeToMountClassTable(tree):
                         classTable[className] = ([], [], [], [])
                         walkingForVariableMember(node['memberList'], className)
                         walkingForFunctionMember(node['memberList'], className)
-                    walkingByTreeToMountClassTable(children[i])
+                    walkingForTreeToMountClassTable(children[i])
+
+def walkingForOptArgs(tree, functionName):
+    if tree is None:
+        return
+    else:
+        if 'formArgsList' in tree.__dict__['children'].keys():
+            node = tree.__dict__['children']['formArgsList']
+            if node is not None :
+                functionHierarchy[functionName][1].append(node.__dict__['children']['parameterId'].__dict__['children']['id'])
+                if 'formArgsList' in node.__dict__['children'].keys() :
+                    if 'parameterId' in node.__dict__['children'].keys():
+                        functionHierarchy[functionName][1].append(node.__dict__['children']['formArgsList'].__dict__['children']['parameterId'].__dict__['children']['id'])
+                    walkingForOptArgs(node.__dict__['children']['formArgsList'], functionName)
+
+def walkingForOptTemps(tree, functionName):
+    if tree is None:
+        return
+    else:
+        node = tree.__dict__['children']['formArgsList']
+        if node is not None :
+            functionHierarchy[functionName][2].append(node.__dict__['children']['parameterId'].__dict__['children']['id'])
+            if 'formArgsList' in node.__dict__['children'].keys() :
+                if 'parameterId' in node.__dict__['children'].keys():
+                        functionHierarchy[functionName][2].append(node.__dict__['children']['formArgsList'].__dict__['children']['parameterId'].__dict__['children']['id'])
+                walkingForOptTemps(node.__dict__['children']['formArgsList'], functionName)
+
+
+def walkingForFunctionParams(tree, functionName):
+    if tree is None:
+        return
+    else:
+        if isinstance(tree, NodeAST):
+            walkingForOptTemps(tree.__dict__['children']['optTempList'], functionName)
+            walkingForOptArgs(tree.__dict__['children']['optFormArgsList'], functionName)
+
+# método para preencher o dicionario de funções
+def walkingForTreeToMountFunctionHierarchy(tree):
+    if tree is None:
+        return
+    else:
+        if isinstance(tree, NodeAST):
+            children = tree.__dict__['children']
+            for i in children:
+                if isinstance(children[i], NodeAST):
+                    currentChild = children[i].__dict__
+                    if 'idClassFunction' in currentChild['children'].keys():
+                        node = currentChild['children']
+                        functionName = node['idClassFunction'].__dict__['children']['id']
+                        className = node['idFunction'].__dict__['children']['id']
+                        functionHierarchy[functionName] = (className, [], [], node['block'])
+                        walkingForFunctionParams(node['optParamList'], functionName)
+                    elif 'idFunction' in currentChild['children'].keys():
+                        node = currentChild['children']
+                        functionName = node['idFunction'].__dict__['children']['id']
+                        # posicao 0, nome da classe que pertence ou none
+                        # posicao 1, lista dos nomes dos parametros
+                        # posicao 2, lista dos nomes das variaveis temporarias
+                        # posicao 3, corpo da função(AST)
+                        functionHierarchy[functionName] = (None, [], [], node['block'])
+                        walkingForFunctionParams(node['optParamList'], functionName)
+                    walkingForTreeToMountFunctionHierarchy(children[i])
 
 if __name__ == "__main__":
     tree = execute("test4.bob")
     # print(result.__dict__['children'][1].__dict__['children'][4]
     # .__dict__['children'][0].__dict__['children'].__dict__['children'][1].__dict__)
-    walkingByTreeToMountClassHierarchy(tree)
-    walkingByTreeToMountClassTable(tree)
-    print(classTable)
+    walkingForTreeToMountClassHierarchy(tree)
+    walkingForTreeToMountClassTable(tree)
+    walkingForTreeToMountFunctionHierarchy(tree)
+    print(functionHierarchy)
