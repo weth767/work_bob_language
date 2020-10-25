@@ -1,13 +1,14 @@
-def Baskara::calculaRaizes(; delta, raiz1, raiz2)
-{
-     delta = b*b - 4*a*c;
-     if (delta < 0) {
-        print("nao tem raiz real\n");
-     } else {
-        raiz1 = -b + delta / (2*a);
-        raiz2 = -b - delta / (2*a);
-        print("raiz1 = \"", raiz1, "\"\n");
-        print("raiz2 = \"", raiz2, "\"\n");
+def main (z, w, x ; a, b, c, d, e, f, g, h, i) {
+     if (5 > 9) {
+        print(2);
      }
+     #a = 6;
+     #b = 3;
+     #c = a * b;
+     while(a < 10) {
+        print(a);
+     }
+     #a;
+     d = 2 * 2 + 4 - 1;
 }
 

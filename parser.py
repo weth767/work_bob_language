@@ -256,7 +256,7 @@ def p_Command(p):
                 name = 'whileLoop'
             else:
                 name = 'ifConditional'
-            children = {name : p[1], 'optExp': p[3], 'command': p[5]}
+            children = {name: p[1], 'optExp': p[3], 'command': p[5]}
         p[0] = NodeAST(AST.COMMAND, children)
     elif len(p) == 8:
         children = dict()
@@ -401,7 +401,7 @@ def p_Exp(p):
             if p[1].__dict__['type'] == AST.ID:
                 p[0] = NodeAST(AST.EXPRESSION, {'id': p[1], 'operator': p[2], 'exp': p[3]})
             else:
-                p[0] = NodeAST(AST.EXPRESSION, {'exp': p[1], 'operator': p[2], 'exp': p[3]})    
+                p[0] = NodeAST(AST.EXPRESSION, {'exp1': p[1], 'operator': p[2], 'exp2': p[3]})
     elif len(p) == 5:
         # ID OPENPARENT OptArgs CLOSEPARENT
         # ID OPENSQUAREBRACKET Exp CLOSESQUAREBRACKET
@@ -424,7 +424,7 @@ def p_Exp(p):
     elif len(p) == 7:
         # Exp ARROW ID OPENPARENT OptArgs CLOSEPARENT
         id = NodeAST(AST.ID, {'id': p[3]})
-        children = {'exp': p[1], '->': p[2], 'id': id, 'optArgs': p[5]}
+        children = {'exp': p[1], 'arrow': p[2], 'id': id, 'optArgs': p[5]}
         p[0] = NodeAST(AST.EXPRESSION, children)
 
 def p_OptArgs(p):

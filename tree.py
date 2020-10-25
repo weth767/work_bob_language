@@ -11,6 +11,7 @@ classHierarchy = dict()
 functionHierarchy = dict()
 classTable = dict()
 
+
 # método para montar a hierarquia de classe
 def walkingForTreeToMountClassHierarchy(tree):
     if tree is None:
@@ -30,7 +31,8 @@ def walkingForTreeToMountClassHierarchy(tree):
                         if superClassName in classHierarchy.keys():
                             classHierarchy[superClassName][1].append(className)
                         classHierarchy[className] = (superClassName, [])
-                    walkingForTreeToMountClassHierarchy(children[i]) 
+                    walkingForTreeToMountClassHierarchy(children[i])
+
 
 def walkingForVariableNamesMember(tree, className, isStatic):
     if tree is None:
@@ -43,6 +45,7 @@ def walkingForVariableNamesMember(tree, className, isStatic):
         if 'variableList' in tree.__dict__['children'].keys():
             if 'variableList' in tree.__dict__['children'].keys():
                 walkingForVariableNamesMember(tree.__dict__['children']['variableList'], className, isStatic)
+
 
 def walkingForVariableMember(tree, className):
     if tree is None:
@@ -62,6 +65,7 @@ def walkingForVariableMember(tree, className):
                         # posicao 3, lista de nomes de funcoes de instancia
                         walkingForVariableNamesMember(children[i].__dict__['children']['variableList'], className, isStatic)
                 walkingForVariableMember(children[i], className)
+
 
 def walkingForFunctionMember(tree, className):
     if tree is None:
@@ -85,6 +89,7 @@ def walkingForFunctionMember(tree, className):
                             classTable[className][3].append(children[i].__dict__['children']['memberId'].__dict__['children']['id'])
                 walkingForFunctionMember(children[i], className)
 
+
 # método para montar a tabela de classes
 def walkingForTreeToMountClassTable(tree):
     if tree is None:
@@ -103,6 +108,7 @@ def walkingForTreeToMountClassTable(tree):
                         walkingForFunctionMember(node['memberList'], className)
                     walkingForTreeToMountClassTable(children[i])
 
+
 def walkingForOptArgs(tree, functionName):
     if tree is None:
         return
@@ -116,17 +122,19 @@ def walkingForOptArgs(tree, functionName):
                         functionHierarchy[functionName][1].append(node.__dict__['children']['formArgsList'].__dict__['children']['parameterId'].__dict__['children']['id'])
                     walkingForOptArgs(node.__dict__['children']['formArgsList'], functionName)
 
+
 def walkingForOptTemps(tree, functionName):
     if tree is None:
         return
     else:
-        node = tree.__dict__['children']['formArgsList']
-        if node is not None :
-            functionHierarchy[functionName][2].append(node.__dict__['children']['parameterId'].__dict__['children']['id'])
-            if 'formArgsList' in node.__dict__['children'].keys() :
-                if 'parameterId' in node.__dict__['children'].keys():
+        if "formArgsList" in tree.__dict__['children'].keys():
+            node = tree.__dict__['children']['formArgsList']
+            if node is not None :
+                functionHierarchy[functionName][2].append(node.__dict__['children']['parameterId'].__dict__['children']['id'])
+                if 'formArgsList' in node.__dict__['children'].keys() :
+                    if 'parameterId' in node.__dict__['children'].keys():
                         functionHierarchy[functionName][2].append(node.__dict__['children']['formArgsList'].__dict__['children']['parameterId'].__dict__['children']['id'])
-                walkingForOptTemps(node.__dict__['children']['formArgsList'], functionName)
+                    walkingForOptTemps(node.__dict__['children']['formArgsList'], functionName)
 
 
 def walkingForFunctionParams(tree, functionName):
@@ -136,6 +144,7 @@ def walkingForFunctionParams(tree, functionName):
         if isinstance(tree, NodeAST):
             walkingForOptTemps(tree.__dict__['children']['optTempList'], functionName)
             walkingForOptArgs(tree.__dict__['children']['optFormArgsList'], functionName)
+
 
 # método para preencher o dicionario de funções
 def walkingForTreeToMountFunctionHierarchy(tree):
@@ -164,11 +173,14 @@ def walkingForTreeToMountFunctionHierarchy(tree):
                         walkingForFunctionParams(node['optParamList'], functionName)
                     walkingForTreeToMountFunctionHierarchy(children[i])
 
-if __name__ == "__main__":
-    tree = execute("test4.bob")
-    # print(result.__dict__['children'][1].__dict__['children'][4]
-    # .__dict__['children'][0].__dict__['children'].__dict__['children'][1].__dict__)
+
+def genereteDictonaries(executeFile):
+    tree = execute(executeFile)
     walkingForTreeToMountClassHierarchy(tree)
     walkingForTreeToMountClassTable(tree)
     walkingForTreeToMountFunctionHierarchy(tree)
-    print(functionHierarchy)
+    # reverte as listas porque monta ao contrário
+    for fun in functionHierarchy:
+        function = functionHierarchy[fun]
+        function[1].reverse()
+        function[2].reverse()
