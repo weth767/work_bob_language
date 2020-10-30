@@ -9,6 +9,7 @@ from scanner import tokens, lexer, reserved_words
 from enum import Enum
 import logging
 
+
 class AST(Enum):
     BLOCK = 1
     COMMAND = 2
@@ -22,6 +23,7 @@ class AST(Enum):
     MOD_CLFUN = 9
     VARIABLE = 10
 
+
 class NodeAST:
     def __init__(self, type, children=None):
         if not isinstance(type, AST):
@@ -34,7 +36,7 @@ class NodeAST:
             self.children = dict()
 
 
-precedence = ( 
+precedence = (
     ('left', 'COMMA'),
     ('right', 'ATRIB', 'PLUSEQUALS', 'MINUSEQUALS', 'TIMESEQUALS', 'DIVEQUALS'),
     ('right', 'TERNARYIF', 'COLON'),
@@ -49,15 +51,32 @@ precedence = (
     ('left', 'TIMES', 'DIV', 'MOD'),
     ('right', 'UMINUS', 'UPLUS'),
     ('right', 'PLUSPLUS', 'MINUSMINUS', 'NOT', 'TILDE'),
-    ('left', 'ARROW') 
+    ('left', 'ARROW')
 )
 """
 ('left', 'OPENPARENT', 'CLOSEPARENT', 'OPENSQUAREBRACKET', 'CLOSESQUAREBRACKET', 'ARROW') 
 """
 
+
+def prettyPrint(object):
+    print("Obj: ", object)
+    try:
+        if "exp1" in object['children'].keys():
+            print("\t(esq): " + str(object['children']["exp1"].__dict__))
+    except:
+        print(object)
+    try:
+        if "exp2" in object['children'].keys():
+            print("\t(dir): " + str(object['children']["exp2"].__dict__))
+    except:
+        print(object)
+    return "\n"
+
+
 def p_Program(p):
     'Program : DefinitionList'
     p[0] = NodeAST(AST.ATC, {'definitionList': p[1]})
+
 
 def p_DefinitionList(p):
     """
@@ -69,11 +88,13 @@ def p_DefinitionList(p):
     else:
         pass
 
+
 def p_Definition(p):
     """Definition : ClassDefinition 
                   | FunctionDefinition"""
     p[0] = NodeAST(AST.ATC, {'cfDefinition': p[1]})
-    
+
+
 def p_ClassDefinition(p):
     """
     ClassDefinition : CLASS ID COLON ID OPENBRACE MemberList CLOSEBRACE
@@ -81,13 +102,14 @@ def p_ClassDefinition(p):
     """
     children = dict()
     if len(p) == 6:
-        id = NodeAST(AST.ID,{ 'id': p[2]})
+        id = NodeAST(AST.ID, {'id': p[2]})
         children = {'class': p[1], 'idClass': id, 'memberList': p[4]}
     else:
         id = NodeAST(AST.ID, {'id': p[2]})
         id2 = NodeAST(AST.ID, {'id': p[4]})
         children = {'class': p[1], 'idClass': id, 'idSuperClass': id2, 'memberList': p[6]}
-    p[0] = NodeAST(AST.COMMAND, children)    
+    p[0] = NodeAST(AST.COMMAND, children)
+
 
 def p_FunctionDefinition(p):
     """
@@ -104,6 +126,7 @@ def p_FunctionDefinition(p):
         children = {'def': p[1], 'idFunction': id, 'idClassFunction': id2, 'optParamList': p[6], 'block': p[8]}
     p[0] = NodeAST(AST.COMMAND, children)
 
+
 def p_MemberList(p):
     """
     MemberList : MemberList MemberDefinition 
@@ -115,6 +138,7 @@ def p_MemberList(p):
     else:
         children = dict()
     p[0] = NodeAST(AST.ATC, children)
+
 
 def p_MemberDefinition(p):
     """
@@ -130,6 +154,7 @@ def p_MemberDefinition(p):
         children = {'optModifier': p[1], 'def': p[2], 'memberId': id, 'optFormArgsList': p[5]}
     p[0] = NodeAST(AST.COMMAND, children)
 
+
 def p_OptModifier(p):
     """
     OptModifier : STATIC 
@@ -139,6 +164,7 @@ def p_OptModifier(p):
     if len(p) == 2:
         children = {'static': p[1]}
     p[0] = NodeAST(AST.MOD_CLFUN, children)
+
 
 def p_VariableList(p):
     """
@@ -152,6 +178,7 @@ def p_VariableList(p):
         children = {'variableList': p[1], 'variable': p[3]}
     p[0] = NodeAST(AST.ATC, children)
 
+
 def p_Variable(p):
     """
     Variable : ID 
@@ -164,6 +191,7 @@ def p_Variable(p):
         children = {'idVariable': id, 'int': p[3]}
         p[0] = NodeAST(AST.VARIABLE, children)
 
+
 def p_OptFormArgsList(p):
     """
     OptFormArgsList : FormArgsList 
@@ -174,10 +202,12 @@ def p_OptFormArgsList(p):
     else:
         pass
 
+
 def p_OptParamList(p):
     'OptParamList : OptFormArgsList OptTempList'
     children = {'optFormArgsList': p[1], 'optTempList': p[2]}
     p[0] = NodeAST(AST.ATC, children)
+
 
 def p_OptTempList(p):
     """
@@ -188,6 +218,7 @@ def p_OptTempList(p):
         p[0] = NodeAST(AST.ATC, {'formArgsList': p[2]})
     else:
         pass
+
 
 def p_FormArgsList(p):
     """
@@ -203,9 +234,11 @@ def p_FormArgsList(p):
         children = {'formArgsList': p[1], 'parameterId': id}
         p[0] = NodeAST(AST.ATC, children)
 
+
 def p_Block(p):
     'Block : OPENBRACE CommandList CLOSEBRACE'
     p[0] = NodeAST(AST.ATC, {'commandList': p[2]})
+
 
 def p_CommandList(p):
     """
@@ -215,7 +248,8 @@ def p_CommandList(p):
     children = dict()
     if len(p) == 3:
         children = {'commandList': p[1], 'command': p[2]}
-    p[0] = NodeAST(AST.ATC, children)   
+    p[0] = NodeAST(AST.ATC, children)
+
 
 def p_Command(p):
     """
@@ -249,7 +283,7 @@ def p_Command(p):
         if reserved_words[p[1]] == 'FOREACH':
             id1 = NodeAST(AST.ID, {'id': p[2]})
             id2 = NodeAST(AST.ID, {'id': p[4]})
-            children = {'foreachloop': p[1], 'iterator': id1, 'values' : id2, 'command' : p[5]}
+            children = {'foreachloop': p[1], 'iterator': id1, 'values': id2, 'command': p[5]}
         else:
             name = ''
             if p[1] == 'while':
@@ -262,17 +296,18 @@ def p_Command(p):
         children = dict()
         if reserved_words[p[1]] == 'IF':
             # IF OPENPARENT OptExp CLOSEPARENT Command ELSE Command
-            children = {'ifConditional': p[1], 'optExp': p[3], 'command': p[5], 'elseConditional' : p[6],
-            'command': p[7]}
+            children = {'ifConditional': p[1], 'optExp': p[3], 'command': p[5], 'elseConditional': p[6],
+                        'command': p[7]}
         else:
             # DO Command WHILE OPENPARENT OptExp CLOSEPARENT SEMICOLON
-            children = {'doLoop': p[1], 'command': p[2], 'whileLoop': p[3], 'optExp' : p[5]}
+            children = {'doLoop': p[1], 'command': p[2], 'whileLoop': p[3], 'optExp': p[5]}
         p[0] = NodeAST(AST.COMMAND, children)
     elif len(p) == 10:
         # FOR OPENPARENT OptExp SEMICOLON OptExp SEMICOLON OptExp CLOSEPARENT Command
         children = {'forLoop': p[1], 'optExp': p[3], 'optExp': p[5], 'optExp': p[7], 'command': p[9]}
         p[0] = NodeAST(AST.COMMAND, children)
-        
+
+
 def p_OptExp(p):
     """
     OptExp : Exp 
@@ -282,6 +317,7 @@ def p_OptExp(p):
         p[0] = NodeAST(AST.ATC, {'exp': p[1]})
     else:
         pass
+
 
 def p_Exp(p):
     """
@@ -350,7 +386,7 @@ def p_Exp(p):
                 p[0] = NodeAST(AST.ID, children)
             else:
                 children = {'string': p[1]}
-                p[0] = NodeAST(AST.STRING, children) 
+                p[0] = NodeAST(AST.STRING, children)
     elif len(p) == 3:
         # | MINUSMINUS LeftVal
         # | PLUSPLUS LeftVal
@@ -360,15 +396,7 @@ def p_Exp(p):
         # | TILDE Exp
         # | MINUS Exp %prec UMINUS
         # | PLUS Exp %prec UPLUS
-        children = dict()
-        if p[1] == '-':
-            children = {'minus': p[1], 'exp': p[2]}
-        elif p[1] == '+':
-            children = {'plus': p[1], 'exp': p[2]}
-        elif p[1] == '!':
-            children = {'not': p[1], 'exp': p[2]}
-        else:
-            children = {'tilde': p[1], 'exp': p[2]}    
+        children = {'operator': p[1], 'exp1': p[2]}
         p[0] = NodeAST(AST.EXPRESSION, children)
     elif len(p) == 4:
         # Exp COMMA Exp
@@ -396,11 +424,17 @@ def p_Exp(p):
         # | LeftVal DIVEQUALS Exp
         # | OPENPARENT Exp CLOSEPARENT
         if p[1] == "(":
-            p[0] = NodeAST(AST.EXPRESSION, {'(': p[1], 'exp': p[2], ')': p[3]}) 
+            p[0] = NodeAST(AST.EXPRESSION, {'(': p[1], 'exp': p[2], ')': p[3]})
         else:
             if p[1].__dict__['type'] == AST.ID:
                 p[0] = NodeAST(AST.EXPRESSION, {'id': p[1], 'operator': p[2], 'exp': p[3]})
             else:
+                # print("dir:")
+                # prettyPrint(p[3].__dict__)
+                # print("center: ", p[2])
+                # print("esq: ")
+                # prettyPrint(p[1].__dict__)
+                # print("=====================")
                 p[0] = NodeAST(AST.EXPRESSION, {'exp1': p[1], 'operator': p[2], 'exp2': p[3]})
     elif len(p) == 5:
         # ID OPENPARENT OptArgs CLOSEPARENT
@@ -411,7 +445,7 @@ def p_Exp(p):
         else:
             children = {'id': id, 'exp': p[3]}
         p[0] = NodeAST(AST.EXPRESSION, children)
-    
+
     elif len(p) == 6:
         # NEW ID OPENPARENT OptArgs CLOSEPARENT
         # Exp TERNARYIF Exp COLON Exp
@@ -427,6 +461,7 @@ def p_Exp(p):
         children = {'exp': p[1], 'arrow': p[2], 'id': id, 'optArgs': p[5]}
         p[0] = NodeAST(AST.EXPRESSION, children)
 
+
 def p_OptArgs(p):
     """
     OptArgs : Args 
@@ -436,6 +471,7 @@ def p_OptArgs(p):
         p[0] = NodeAST(AST.ATC, {'args': p[1]})
     else:
         pass
+
 
 def p_Args(p):
     """
@@ -448,21 +484,24 @@ def p_Args(p):
         children = {'args': p[1], 'exp': p[3]}
         p[0] = NodeAST(AST.ATC, children)
 
+
 def p_LeftVal(p):
     """
     LeftVal : ID 
             | ID OPENSQUAREBRACKET Exp CLOSESQUAREBRACKET
     """
-    if len(p) == 2: 
+    if len(p) == 2:
         p[0] = NodeAST(AST.ID, {'id': p[1]})
     else:
         id = NodeAST(AST.ID, {'id': p[1]})
-        children = {'id': id, 'Exp': p[3]}
+        children = {'id': id, 'exp': p[3]}
         p[0] = NodeAST(AST.COMMAND, children)
+
 
 def p_empty(p):
     'empty :'
     pass
+
 
 # Error rule for syntax errors
 def p_error(p):
@@ -471,15 +510,17 @@ def p_error(p):
     else:
         print("Syntax error at token", p.type, "line=", p.lineno)
 
+
 # Build the parser
 logging.basicConfig(
-     level = logging.DEBUG,
-     filename = "parselog.txt",
-     filemode = "w",
-     format = "%(filename)10s:%(lineno)4d:%(message)s"
+    level=logging.DEBUG,
+    filename="parselog.txt",
+    filemode="w",
+    format="%(filename)10s:%(lineno)4d:%(message)s"
 )
 log = logging.getLogger()
 parser = yacc.yacc(debug=True, debuglog=log)
+
 
 def execute(filename):
     file = open(filename, 'r')
