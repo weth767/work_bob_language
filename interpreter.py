@@ -2,6 +2,7 @@ from enum import Enum
 
 from tree import classHierarchy, functionHierarchy, classTable, genereteDictonaries
 from parser import NodeAST, AST
+from copy import deepcopy
 
 stack = []
 
@@ -34,29 +35,10 @@ def resolveNodeCommand(nodeCommand, commandList):
                     resolveNodeCommand(nodeCommand['commandList'].__dict__['children'], commandList)
 
 
-# Método para resolver uma expressão, preenchendo os operandos e operadores
-def resolveExp(exp, operands: list, operators: list, types: list):
-    if exp is None:
-        return
-    else:
-        # precisamos caminhar em ordem
-        currentExp = exp.__dict__['children']
-        if "exp1" in currentExp.keys():
-            resolveExp(currentExp['exp1'], operands, operators, types)
-        if "exp2" in currentExp.keys():
-            resolveExp(currentExp['exp2'], operands, operators, types)
-        if exp.__dict__['type'] == AST.EXPRESSION:
-            operators.append(currentExp['operator'])
-        else:
-            type = ""
-            for key in currentExp:
-                types.append(key)
-                type = key
-            operands.append(currentExp[type])
-
-
 # método para resolver as operações no geral
 def resolveOperation(operands, operators, types):
+    if len(operands) == 1 and len(operators) == 0:
+        return operands[0]
     if ("+" in operators) or ("-" in operators) or ("*" in operators) or ('/' in operators):
         return resolveArithmeticOperation(operands, operators, types)
     else:
@@ -68,12 +50,14 @@ def resolveLogicOperation(operands, operators, types):
     result = 0
     conectiveOperators = []
     logicalOperands = []
+    comparationOperators = []
     for op in operators:
         if op == "||" or op == "&&" or op == "==" or op == "!=":
             conectiveOperators.append(op)
-            operators.remove(op)
+        else:
+            comparationOperators.append(op)
     while len(operands) > 1:
-        operator = operators[0]
+        operator = comparationOperators[0]
         if operator == '>':
             result = operands[0] > operands[1]
         elif operator == '<':
@@ -87,7 +71,7 @@ def resolveLogicOperation(operands, operators, types):
             exit()
         operands.pop(0)
         operands.pop(0)
-        operators.pop(0)
+        comparationOperators.pop(0)
         logicalOperands.append(result)
     while len(logicalOperands) > 1:
         operator = conectiveOperators[0]
@@ -130,7 +114,6 @@ def resolveArithmeticOperation(operands, operators, types):
             else:
                 result = float(operands[0]) / float(operands[1])
         else:
-            print("entrou aqui")
             if operator == '+':
                 result = str(operands[0]) + str(operands[1])
         operands.pop(0)
@@ -144,13 +127,12 @@ def resolveArithmeticOperation(operands, operators, types):
 def resolveFunction(optExp, env: dict):
     currentFunctionId = optExp['id'].__dict__['children']['id']
     args = optExp['optArgs'].__dict__['children']['args']
-    #print(args)
     if currentFunctionId == INTERNAL_FUNCTIONS.PRINT.value or currentFunctionId == INTERNAL_FUNCTIONS.SCANF.value:
         if args is not None:
             operands = []
             operators = []
             types = []
-            resolveExp(args.__dict__['children']['exp'], operands, operators, types)
+            resolveExp(args.__dict__, operands, operators, types, env)
             result = resolveOperation(operands, operators, types)
             print(result)
 
@@ -175,7 +157,7 @@ def resolveOptExp(optExp, env: dict):
             operators = []
             types = []
             currentId = optExp["id"].__dict__['children']['id']
-            resolveExp(optExp["exp"], operands, operators, types)
+            resolveExp(optExp["exp"].__dict__, operands, operators, types, env)
             result = resolveOperation(operands, operators, types)
             env[currentId][1] = types[0]
             env[currentId][2] = result
@@ -184,14 +166,91 @@ def resolveOptExp(optExp, env: dict):
 
 
 # método para resolver o comando
+def resolveExp(exp, operands, operators, types, env):
+    if exp is None:
+        return
+    else:
+        currentExp = exp['children']
+        if "id" in currentExp.keys():
+            if isinstance(currentExp["id"], NodeAST):
+                currentId = currentExp["id"].__dict__["children"]["id"]
+            else:
+                currentId = currentExp["id"]
+            t = env[currentId][1]
+            value = env[currentId][2]
+            if t == 'int':
+                value = int(value)
+            elif t == 'float':
+                value = float(value)
+            operands.append(value)
+            types.append(t)
+        if "exp" in currentExp.keys():
+            resolveExp(currentExp['exp'].__dict__, operands, operators, types, env)
+        if "exp1" in currentExp.keys():
+            resolveExp(currentExp['exp1'].__dict__, operands, operators, types, env)
+        if "exp2" in currentExp.keys():
+            resolveExp(currentExp['exp2'].__dict__, operands, operators, types, env)
+        if exp['type'] == AST.EXPRESSION:
+            operators.append(currentExp['operator'])
+        if "id" not in currentExp.keys() \
+                and "exp" not in currentExp.keys() \
+                and "exp1" not in currentExp.keys() \
+                and "exp2" not in currentExp.keys():
+            t = ''
+            value = ''
+            for key in currentExp:
+                t = key
+                value = currentExp[t]
+            if t == 'int':
+                value = int(value)
+            elif t == 'float':
+                value = float(value)
+            operands.append(value)
+            types.append(t)
+
+
+def resolveIf(nodeCommand, env):
+    optExp = nodeCommand['optExp'].__dict__['children']
+    operands = []
+    operators = []
+    types = []
+    resolveExp(optExp['exp'].__dict__, operands, operators, types, env)
+    result = resolveOperation(operands, operators, types)
+    stack.append(env)
+    newEnv = deepcopy(env)
+    if result:
+        resolveBlock(nodeCommand['commandIf'].__dict__['children']['block'], newEnv)
+    elif "commandElse" in nodeCommand:
+        resolveBlock(nodeCommand['commandElse'].__dict__['children']['block'], newEnv)
+
+
+def resolveWhile(nodeCommand, env):
+    optExp = nodeCommand['optExp'].__dict__['children']
+    operands = []
+    operators = []
+    types = []
+    resolveExp(optExp['exp'].__dict__, operands, operators, types, env)
+    result = resolveOperation(operands, operators, types)
+    newEnv = deepcopy(env)
+    stack.append(newEnv)
+    while result:
+        resolveBlock(nodeCommand['command'].__dict__['children']['block'], stack[-1])
+        operands = []
+        operators = []
+        types = []
+        resolveExp(optExp['exp'].__dict__, operands, operators, types, stack[-1])
+        result = resolveOperation(operands, operators, types)
+    stack.pop()
+
+
 def resolveCommand(command, env: dict):
     # pega o comando
     nodeCommand = command.__dict__["children"]
     # verifica qual é o comando
     if "ifConditional" in nodeCommand:
-        pass
+        resolveIf(nodeCommand, env)
     elif "whileLoop" in nodeCommand:
-        pass
+        resolveWhile(nodeCommand, env)
     # caso for optExp, chama o método para resolve-la passando a exp
     elif "optExp" in nodeCommand:
         resolveOptExp(nodeCommand["optExp"].__dict__["children"]["exp"].__dict__['children'], env)
@@ -227,9 +286,10 @@ def interpreter(functionOrClass):
     # pegando os parametros da função
     for par in functionOrClass[1]:
         env[par] = ['par', None]
+    stack.append(env)
     # resolve o bloco da função
-    resolveBlock(functionOrClass[3], env)
-    print(env)
+    resolveBlock(functionOrClass[3], stack[-1])
+    #print(env)
 
 
 if __name__ == '__main__':

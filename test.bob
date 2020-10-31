@@ -1,4 +1,7 @@
-def main (; c) {
-     c = 1 * 2 + 3 + 4 - 5 ;
-     print(5 + 10);
+def main (; a , b, c, d) {
+     c = 0;
+     while(c < 10) {
+        c = c + 1;
+        print(c);
+     }
 }

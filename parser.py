@@ -288,16 +288,17 @@ def p_Command(p):
             name = ''
             if p[1] == 'while':
                 name = 'whileLoop'
+                children = {name: p[1], 'optExp': p[3], 'command': p[5]}
             else:
                 name = 'ifConditional'
-            children = {name: p[1], 'optExp': p[3], 'command': p[5]}
+                children = {name: p[1], 'optExp': p[3], 'commandIf': p[5]}
         p[0] = NodeAST(AST.COMMAND, children)
     elif len(p) == 8:
         children = dict()
         if reserved_words[p[1]] == 'IF':
             # IF OPENPARENT OptExp CLOSEPARENT Command ELSE Command
-            children = {'ifConditional': p[1], 'optExp': p[3], 'command': p[5], 'elseConditional': p[6],
-                        'command': p[7]}
+            children = {'ifConditional': p[1], 'optExp': p[3], 'commandIf': p[5], 'elseConditional': p[6],
+                        'commandElse': p[7]}
         else:
             # DO Command WHILE OPENPARENT OptExp CLOSEPARENT SEMICOLON
             children = {'doLoop': p[1], 'command': p[2], 'whileLoop': p[3], 'optExp': p[5]}
@@ -453,7 +454,7 @@ def p_Exp(p):
             id = NodeAST(AST.ID, {'id': p[2]})
             children = {'new': p[1], 'id': id, 'optArgs': p[4]}
         else:
-            children = {'exp': p[1], '?': p[2], 'exp': p[3], 'exp': p[5]}
+            children = {'exp1': p[1], '?': p[2], 'exp2': p[3], 'exp3': p[5]}
         p[0] = NodeAST(AST.EXPRESSION, children)
     elif len(p) == 7:
         # Exp ARROW ID OPENPARENT OptArgs CLOSEPARENT
