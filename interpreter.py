@@ -3,7 +3,6 @@ from enum import Enum
 from tree import classHierarchy, functionHierarchy, classTable, genereteDictonaries
 from parser import NodeAST, AST
 from copy import deepcopy
-import re
 
 stack = []
 
@@ -65,8 +64,6 @@ def resolveLogicOperation(operands, operators, types):
         if types[i] == "int" or types[i] == "float" or types[i] == "string" or types[i] == "bool":
             operators.append(str(operands[i]))
         else:
-            # print(operands)
-            # print(operators)
             if len(operators) == 1:
                 value1 = operators.pop()
                 if operands[i] == "!":
@@ -165,7 +162,6 @@ def resolveExp(exp, operands, operators, types, env):
         return
     else:
         currentExp = exp['children']
-        #print(currentExp)
         if "exp1" in currentExp.keys():
             resolveExp(currentExp['exp1'].__dict__, operands, operators, types, env)
         if "exp2" in currentExp.keys():
@@ -175,7 +171,6 @@ def resolveExp(exp, operands, operators, types, env):
                 currentId = currentExp["id"].__dict__["children"]["id"]
             else:
                 currentId = currentExp["id"]
-            #print(currentId)
             t = env[currentId][1]
             value = env[currentId][2]
             if t == 'int':
@@ -243,14 +238,14 @@ def resolveWhile(nodeCommand, env):
 def resolveFor(nodeCommand, env):
     newEnv = deepcopy(env)
     stack.append(newEnv)
-    operands = []
-    operators = []
-    types = []
+    operands1 = []
+    operators1 = []
+    types1 = []
     # primeira parte do for
     exp1 = nodeCommand['optExp1'].__dict__['children']['exp'].__dict__
     currentId = exp1['children']['id'].__dict__['children']['id']
-    resolveExp(exp1['children']['exp'].__dict__, operands, operators, types, stack[-1])
-    result1, type1 = resolveOperation(operands, operators, types)
+    resolveExp(exp1['children']['exp'].__dict__, operands1, operators1, types1, stack[-1])
+    result1, type1 = resolveOperation(operands1, operators1, types1)
     stack[-1][currentId][2] = result1
     if type(result1) is int:
         stack[-1][currentId][1] = 'int'
@@ -260,21 +255,38 @@ def resolveFor(nodeCommand, env):
         stack[-1][currentId][1] = 'string'
     # segunda parte do for
     exp2 = nodeCommand['optExp2'].__dict__['children']['exp'].__dict__
-    operands = []
-    operators = []
-    types = []
-    resolveExp(exp2, operands, operators, types, stack[-1])
-    result2, type2 = resolveOperation(operands, operators, types)
+    operands2 = []
+    operators2 = []
+    types2 = []
+    resolveExp(exp2, operands2, operators2, types2, stack[-1])
+    result2, type2 = resolveOperation(operands2, operators2, types2)
     # terceira parte do for
     exp3 = nodeCommand['optExp3'].__dict__['children']['exp'].__dict__
-    operands = []
-    operators = []
-    types = []
-    resolveExp(exp3, operands, operators, types, stack[-1])
-    result3, type3 = resolveOperation(operands, operators, types)
-    # print(operands)
-    # print(operators)
-    # print(result3)
+    operands3 = []
+    operators3 = []
+    types3 = []
+    resolveExp(exp3['children']['exp'].__dict__, operands3, operators3, types3, stack[-1])
+    result3, type3 = resolveOperation(operands3, operators3, types3)
+    while result2 == "True":
+        # resolve o bloco dentro do laço
+        resolveBlock(nodeCommand['command'].__dict__['children']['block'], stack[-1])
+        # itera na variavel
+        stack[-1][currentId][2] = result3
+        # teste de condições do for
+        # segunda parte do for
+        exp2 = nodeCommand['optExp2'].__dict__['children']['exp'].__dict__
+        operands2 = []
+        operators2 = []
+        types2 = []
+        resolveExp(exp2, operands2, operators2, types2, stack[-1])
+        result2, type2 = resolveOperation(operands2, operators2, types2)
+        # terceira parte do for
+        exp3 = nodeCommand['optExp3'].__dict__['children']['exp'].__dict__
+        operands3 = []
+        operators3 = []
+        types3 = []
+        resolveExp(exp3['children']['exp'].__dict__, operands3, operators3, types3, stack[-1])
+        result3, type3 = resolveOperation(operands3, operators3, types3)
 
 
 def resolveCommand(command, env: dict):
