@@ -351,6 +351,25 @@ def resolveFor(nodeCommand, env):
         result3, type3 = resolveOperation(operands3, operators3, types3)
 
 
+def resolveForEach(nodeCommand, env):
+    newEnv = deepcopy(env)
+    varName = nodeCommand['iterator'].__dict__['children']['id']
+    values = nodeCommand['values'].__dict__['children']['id']
+    stack.append(newEnv)
+    for iterator in env[values][2]:
+        if type(iterator) == int:
+            stack[-1][varName][1] = "int"
+        elif type(iterator) == float:
+            stack[-1][varName][1] = "float"
+        elif type(iterator) is None:
+            stack[-1][varName][1] = None
+        else:
+            stack[-1][varName][1] = "string"
+        stack[-1][varName][2] = iterator
+        block = nodeCommand['command'].__dict__['children']['block']
+        resolveBlock(block, stack[-1])
+
+
 def resolveCommand(command, env: dict):
     # pega o comando
     nodeCommand = command.__dict__["children"]
@@ -361,6 +380,8 @@ def resolveCommand(command, env: dict):
         resolveWhile(nodeCommand, env)
     elif "forLoop" in nodeCommand:
         resolveFor(nodeCommand, env)
+    elif "foreachloop" in nodeCommand:
+        resolveForEach(nodeCommand, env)
     # caso for optExp, chama o método para resolve-la passando a exp
     elif "optExp" in nodeCommand:
         resolveOptExp(nodeCommand["optExp"].__dict__["children"]["exp"].__dict__['children'], env)

@@ -1,4 +1,6 @@
 def main (; a, b, c, d) {
-    scanf("int", a);
-    print(a);
+    b = 3;
+    foreach a in b {
+        print(a);
+    }
 }

@@ -5,4 +5,9 @@
 5 - Uso de vetores (pronto*)
 6 - Classes
 7 - ForEach
-8 - scanf
+8 - scanf (pronto*)
+9 - do while
+10 - break, return e continue
+11 - new classe
+12 - Arrow function
+13 - nil
