@@ -150,6 +150,28 @@ def resolveFunction(optExp, env: dict):
                 env[currentId][2] = float(input())
             else:
                 env[currentId][2] = input()
+    else:
+        function = functionHierarchy[currentFunctionId]
+        newEnv = deepcopy(env)
+        stack.append(newEnv)
+        if isinstance(args, NodeAST):
+            argsList = args.__dict__['children']['exp'].__dict__
+            operands = []
+            operators = []
+            types = []
+            resolveExp(argsList, operands, operators, types, env)
+            while "," in operands : operands.remove(",")
+            # pegando as variaveis locais
+            for var in function[2]:
+                newEnv[var] = ['var', None, None]
+            for var in range(len(function[1])):
+                newEnv[function[1][var]] = ['var', 'int', operands[var]]
+            stack.append(newEnv)
+        else:
+            for var in function[2]:
+                newEnv[var] = ['var', None, None]
+        resolveBlock(function[3], stack[-1])
+        stack.pop()
 
 
 # método para resolver a exp opicional ainda não montada
@@ -413,6 +435,9 @@ def resolveCommand(command, env: dict):
         resolveForEach(nodeCommand, env)
     elif "doLoop" in nodeCommand:
         resolveDoWhileLoop(nodeCommand, env)
+    # break, continue e return
+    elif "lCommand" in nodeCommand:
+        pass
     # caso for optExp, chama o método para resolve-la passando a exp
     elif "optExp" in nodeCommand:
         resolveOptExp(nodeCommand["optExp"].__dict__["children"]["exp"].__dict__['children'], env)

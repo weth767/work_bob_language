@@ -1,8 +1,12 @@
+def soma(a, b; c) {
+    c = a + b;
+    print(c);
+}
+
 def main (; a, b, c, d) {
-    b = 10;
-    do {
-        b = b + 1;
-        print(b);
-    } while(b < 10);
-    print(b);
+    a = 5;
+    b = 3;
+    c = 2;
+    d = 7;
+    soma(1, 2);
 }
