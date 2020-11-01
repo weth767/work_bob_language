@@ -3,6 +3,7 @@ from enum import Enum
 from tree import classHierarchy, functionHierarchy, classTable, genereteDictonaries
 from parser import NodeAST, AST
 from copy import deepcopy
+import numpy as np
 
 stack = []
 
@@ -137,6 +138,34 @@ def resolveFunction(optExp, env: dict):
 
 
 # método para resolver a exp opicional ainda não montada
+def resolveArray(exp, env):
+    if "id" in exp.keys():
+        currentId = exp["id"].__dict__['children']['id']
+        sizeArray = exp['exp'].__dict__['children']['int']
+        env[currentId][0] = "array"
+        env[currentId][1] = sizeArray
+        env[currentId][2] = [None for i in range(int(sizeArray))]
+    elif "exp1" in exp.keys() or "exp2" in exp.keys():
+        currentId = exp['exp1'].__dict__['children']['id'].__dict__['children']['id']
+        operands1 = []
+        operators1 = []
+        types1 = []
+        resolveExp(exp['exp1'].__dict__, operands1, operators1, types1, env)
+        operands2 = []
+        operators2 = []
+        types2 = []
+        resolveExp(exp['exp2'].__dict__, operands2, operators2, types2, env)
+        value = operands2[0]
+        if types2[0] == 'int':
+            value = int(value)
+        elif types2[0] == 'float':
+            value = float(value)
+        array = operands1[0]
+        index = operands1[1]
+        array[index] = value
+        env[currentId][2] = array
+
+
 def resolveOptExp(optExp, env: dict):
     # caso tenha só chamado a variável, somente retorna
     if len(optExp.keys()) == 1 and "id" in optExp.keys():
@@ -149,7 +178,11 @@ def resolveOptExp(optExp, env: dict):
             currentId = optExp["id"].__dict__['children']['id']
             # e atualiza o env
             for key in optExp["exp"].__dict__['children']:
-                env[currentId] = ["var", key, optExp["exp"].__dict__['children'][key]]
+                if optExp["exp"].__dict__['children'][key] in env.keys():
+                    var = optExp["exp"].__dict__['children'][key]
+                    env[currentId] = [env[var][0], env[var][1], env[var][2]]
+                else:
+                    env[currentId] = ["var", key, optExp["exp"].__dict__['children'][key]]
         else:
             # caso contrário, busca as exps para retornar o resultado
             operands = []
@@ -161,7 +194,10 @@ def resolveOptExp(optExp, env: dict):
             env[currentId][1] = t
             env[currentId][2] = result
     else:
-        resolveFunction(optExp, env)
+        if "optArgs" in optExp:
+            resolveFunction(optExp, env)
+        else:
+            resolveArray(optExp, env)
 
 
 # método para resolver o comando

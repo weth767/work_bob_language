@@ -1,5 +1,7 @@
-def main (; a , b, c, d) {
-     for(c = 10; c >= 1; --c) {
-        print(10 * c);
-     }
+def main (; a, b, c, d) {
+    b = 10;
+    c = b;
+    a[10];
+    a[1] = 400000;
+    d = a;
 }

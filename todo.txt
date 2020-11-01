@@ -2,6 +2,7 @@
 2 - Utilizar pilha para controle de ambientes (Meio pronto*)
 3 - Fazer o laço FOR (pronto*) verificar -- ou ++ variavel
 4 - Execução de funções
-5 - Uso de vetores
+5 - Uso de vetores (pronto*)
 6 - Classes
 7 - ForEach
+8 - scanf
