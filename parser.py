@@ -397,7 +397,10 @@ def p_Exp(p):
         # | TILDE Exp
         # | MINUS Exp %prec UMINUS
         # | PLUS Exp %prec UPLUS
-        children = {'operator': p[1], 'exp1': p[2]}
+        if p[2] == "++" or p[2] == "--":
+            children = {'exp1': p[1], 'operator': p[2]}
+        else:
+            children = {'operator': p[1], 'exp1': p[2]}
         p[0] = NodeAST(AST.EXPRESSION, children)
     elif len(p) == 4:
         # Exp COMMA Exp

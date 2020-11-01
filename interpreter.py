@@ -50,7 +50,8 @@ def resolveOperation(operands, operators, types):
         else:
             t = 'string'
         return operands[0], t
-    if ("+" in operands) or ("-" in operands) or ("*" in operands) or ('/' in operands):
+    if ("+" in operands) or ("-" in operands) or ("*" in operands) or ('/' in operands) \
+            or ('++' in operands) or ('--' in operands):
         return resolveArithmeticOperation(operands, operators, types)
     else:
         return resolveLogicOperation(operands, operators, types)
@@ -85,33 +86,40 @@ def resolveLogicOperation(operands, operators, types):
 # Método para resolver as operações aritmeticas
 def resolveArithmeticOperation(operands, operators, types):
     result = 0
-    operators = []
-    t = ''
-    if "string" in types:
-        for i in range(len(types)):
-            if types[i] != "operator":
-                types[i] = "string"
-    for i in range(len(operands)):
-        if "string" in types:
-            t = "string"
-            if operands[i] == '+':
-                value2 = operators.pop()
-                value1 = operators.pop()
-                result = str(value1.replace("\"", "")) + str(value2.replace("\"", ""))
-                operators.append(result)
-            else:
-                operators.append(str(operands[i]))
+    if len(operands) == 2 and ("++" in operands or "--" in operands):
+        t = 'int'
+        if operands[1] == "++":
+            result = int(operands[0]) + 1
         else:
-            if types[i] == "int" or types[i] == "float":
-                t = 'int'
-                if types[i] == "float":
-                    t = 'float'
-                operators.append(str(operands[i]))
+            result = int(operands[0]) - 1
+    else:
+        operators = []
+        t = ''
+        if "string" in types:
+            for i in range(len(types)):
+                if types[i] != "operator":
+                    types[i] = "string"
+        for i in range(len(operands)):
+            if "string" in types:
+                t = "string"
+                if operands[i] == '+':
+                    value2 = operators.pop()
+                    value1 = operators.pop()
+                    result = str(value1.replace("\"", "")) + str(value2.replace("\"", ""))
+                    operators.append(result)
+                else:
+                    operators.append(str(operands[i]))
             else:
-                value2 = operators.pop()
-                value1 = operators.pop()
-                result = str((eval(value1 + operands[i] + value2)))
-                operators.append(result)
+                if types[i] == "int" or types[i] == "float":
+                    t = 'int'
+                    if types[i] == "float":
+                        t = 'float'
+                    operators.append(str(operands[i]))
+                else:
+                    value2 = operators.pop()
+                    value1 = operators.pop()
+                    result = str((eval(value1 + operands[i] + value2)))
+                    operators.append(result)
     return result, t
 
 
@@ -265,7 +273,9 @@ def resolveFor(nodeCommand, env):
     operands3 = []
     operators3 = []
     types3 = []
-    resolveExp(exp3['children']['exp'].__dict__, operands3, operators3, types3, stack[-1])
+    if "exp" in exp3['children'].keys():
+        exp3 = exp3['children']['exp'].__dict__
+    resolveExp(exp3, operands3, operators3, types3, stack[-1])
     result3, type3 = resolveOperation(operands3, operators3, types3)
     while result2 == "True":
         # resolve o bloco dentro do laço
@@ -285,7 +295,9 @@ def resolveFor(nodeCommand, env):
         operands3 = []
         operators3 = []
         types3 = []
-        resolveExp(exp3['children']['exp'].__dict__, operands3, operators3, types3, stack[-1])
+        if "exp" in exp3['children'].keys():
+            exp3 = exp3['children']['exp'].__dict__
+        resolveExp(exp3, operands3, operators3, types3, stack[-1])
         result3, type3 = resolveOperation(operands3, operators3, types3)
 
 
