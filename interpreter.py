@@ -50,6 +50,18 @@ def resolveOperation(operands, operators, types):
         else:
             t = 'string'
         return operands[0], t
+    if len(operands) == 2 and type(operands[0]) == list:
+        value = operands[0][int(operands[1])]
+        t = ''
+        if type(value) == bool:
+            t = 'bool'
+        elif type(value) == int:
+            t = 'int'
+        elif type(value) == float:
+            t = 'float'
+        else:
+            t = 'string'
+        return value, t
     if ("+" in operands) or ("-" in operands) or ("*" in operands) or ('/' in operands) \
             or ('++' in operands) or ('--' in operands):
         return resolveArithmeticOperation(operands, operators, types)
@@ -278,8 +290,9 @@ def resolveExp(exp, operands, operators, types, env):
             operands.append(value)
             types.append(t)
         if exp['type'] == AST.EXPRESSION:
-            operands.append(currentExp['operator'])
-            types.append("operator")
+            if "operator" in currentExp:
+                operands.append(currentExp['operator'])
+                types.append("operator")
 
 
 def resolveIf(nodeCommand, env):
