@@ -301,7 +301,7 @@ def p_Command(p):
                         'commandElse': p[7]}
         else:
             # DO Command WHILE OPENPARENT OptExp CLOSEPARENT SEMICOLON
-            children = {'doLoop': p[1], 'command': p[2], 'whileLoop': p[3], 'optExp': p[5]}
+            children = {'doLoop': p[1], 'command': p[2], 'while': p[3], 'optExp': p[5]}
         p[0] = NodeAST(AST.COMMAND, children)
     elif len(p) == 10:
         # FOR OPENPARENT OptExp SEMICOLON OptExp SEMICOLON OptExp CLOSEPARENT Command

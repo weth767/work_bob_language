@@ -151,6 +151,7 @@ def resolveFunction(optExp, env: dict):
             else:
                 env[currentId][2] = input()
 
+
 # método para resolver a exp opicional ainda não montada
 def resolveArray(exp, env):
     if "id" in exp.keys():
@@ -272,6 +273,7 @@ def resolveIf(nodeCommand, env):
         resolveBlock(nodeCommand['commandIf'].__dict__['children']['block'], newEnv)
     elif "commandElse" in nodeCommand:
         resolveBlock(nodeCommand['commandElse'].__dict__['children']['block'], newEnv)
+    stack.pop()
 
 
 def resolveWhile(nodeCommand, env):
@@ -349,6 +351,7 @@ def resolveFor(nodeCommand, env):
             exp3 = exp3['children']['exp'].__dict__
         resolveExp(exp3, operands3, operators3, types3, stack[-1])
         result3, type3 = resolveOperation(operands3, operators3, types3)
+    stack.pop()
 
 
 def resolveForEach(nodeCommand, env):
@@ -368,6 +371,32 @@ def resolveForEach(nodeCommand, env):
         stack[-1][varName][2] = iterator
         block = nodeCommand['command'].__dict__['children']['block']
         resolveBlock(block, stack[-1])
+    stack.pop()
+
+
+def resolveDoWhileLoop(nodeCommand, env):
+    optExp = nodeCommand['optExp'].__dict__['children']
+    operands = []
+    operators = []
+    types = []
+    resolveExp(optExp['exp'].__dict__, operands, operators, types, env)
+    result, t = resolveOperation(operands, operators, types)
+    newEnv = deepcopy(env)
+    stack.append(newEnv)
+    resolveBlock(nodeCommand['command'].__dict__['children']['block'], stack[-1])
+    operands = []
+    operators = []
+    types = []
+    resolveExp(optExp['exp'].__dict__, operands, operators, types, stack[-1])
+    result, t = resolveOperation(operands, operators, types)
+    while result == 'True':
+        resolveBlock(nodeCommand['command'].__dict__['children']['block'], stack[-1])
+        operands = []
+        operators = []
+        types = []
+        resolveExp(optExp['exp'].__dict__, operands, operators, types, stack[-1])
+        result, t = resolveOperation(operands, operators, types)
+    stack.pop()
 
 
 def resolveCommand(command, env: dict):
@@ -382,6 +411,8 @@ def resolveCommand(command, env: dict):
         resolveFor(nodeCommand, env)
     elif "foreachloop" in nodeCommand:
         resolveForEach(nodeCommand, env)
+    elif "doLoop" in nodeCommand:
+        resolveDoWhileLoop(nodeCommand, env)
     # caso for optExp, chama o método para resolve-la passando a exp
     elif "optExp" in nodeCommand:
         resolveOptExp(nodeCommand["optExp"].__dict__["children"]["exp"].__dict__['children'], env)

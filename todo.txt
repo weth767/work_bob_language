@@ -4,9 +4,9 @@
 4 - Execução de funções
 5 - Uso de vetores (pronto*)
 6 - Classes
-7 - ForEach
+7 - ForEach (pronto*)
 8 - scanf (pronto*)
-9 - do while
+9 - do while (pronto*)
 10 - break, return e continue
 11 - new classe
 12 - Arrow function

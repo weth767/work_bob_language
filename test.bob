@@ -1,6 +1,8 @@
 def main (; a, b, c, d) {
-    b = 3;
-    foreach a in b {
-        print(a);
-    }
+    b = 10;
+    do {
+        b = b + 1;
+        print(b);
+    } while(b < 10);
+    print(b);
 }
