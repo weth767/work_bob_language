@@ -305,7 +305,7 @@ def p_Command(p):
         p[0] = NodeAST(AST.COMMAND, children)
     elif len(p) == 10:
         # FOR OPENPARENT OptExp SEMICOLON OptExp SEMICOLON OptExp CLOSEPARENT Command
-        children = {'forLoop': p[1], 'optExp': p[3], 'optExp': p[5], 'optExp': p[7], 'command': p[9]}
+        children = {'forLoop': p[1], 'optExp1': p[3], 'optExp2': p[5], 'optExp3': p[7], 'command': p[9]}
         p[0] = NodeAST(AST.COMMAND, children)
 
 

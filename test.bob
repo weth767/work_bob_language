@@ -1,7 +1,11 @@
 def main (; a , b, c, d) {
-     c = 0;
-     while(c < 10) {
-        c = c + 1;
-        print(c);
+     a = 10;
+     c = a * 2;
+     b = 3;
+     d = 1;
+     while (d <= 10) {
+         print(d);
+         d = d + 1;
      }
+
 }

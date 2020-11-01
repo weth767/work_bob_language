@@ -1,6 +1,7 @@
-1 - Terminar o while
+1 - Terminar o while(pronto*)
 2 - Utilizar pilha para controle de ambientes
 3 - Fazer o laço FOR
 4 - Execução de funções
 5 - Uso de vetores
 6 - Classes
+7 - ForEach
