@@ -1,7 +1,4 @@
 def main (; a, b, c, d) {
-    b = 10;
-    c = b;
-    a[10];
-    a[1] = 400000;
-    d = a;
+    scanf("int", a);
+    print(a);
 }

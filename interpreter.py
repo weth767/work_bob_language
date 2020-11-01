@@ -3,7 +3,6 @@ from enum import Enum
 from tree import classHierarchy, functionHierarchy, classTable, genereteDictonaries
 from parser import NodeAST, AST
 from copy import deepcopy
-import numpy as np
 
 stack = []
 
@@ -127,7 +126,7 @@ def resolveArithmeticOperation(operands, operators, types):
 def resolveFunction(optExp, env: dict):
     currentFunctionId = optExp['id'].__dict__['children']['id']
     args = optExp['optArgs'].__dict__['children']['args']
-    if currentFunctionId == INTERNAL_FUNCTIONS.PRINT.value or currentFunctionId == INTERNAL_FUNCTIONS.SCANF.value:
+    if currentFunctionId == INTERNAL_FUNCTIONS.PRINT.value:
         if args is not None:
             operands = []
             operators = []
@@ -135,7 +134,22 @@ def resolveFunction(optExp, env: dict):
             resolveExp(args.__dict__, operands, operators, types, env)
             result, t = resolveOperation(operands, operators, types)
             print(result)
-
+    elif currentFunctionId == INTERNAL_FUNCTIONS.SCANF.value:
+        if args is not None:
+            operands = []
+            operators = []
+            types = []
+            argsList = args.__dict__['children']['exp'].__dict__['children']['exp1'].__dict__
+            resolveExp(argsList, operands, operators, types, env)
+            t = str(operands[0]).replace("\"", "")
+            currentId = args.__dict__['children']['exp'].__dict__['children']['exp2'].__dict__['children']['id']
+            env[currentId][1] = t
+            if t == "int":
+                env[currentId][2] = int(input())
+            elif t == "float":
+                env[currentId][2] = float(input())
+            else:
+                env[currentId][2] = input()
 
 # método para resolver a exp opicional ainda não montada
 def resolveArray(exp, env):
