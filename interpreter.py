@@ -23,7 +23,7 @@ class INTERNAL_FUNCTIONS(Enum):
 
 
 def start():
-    genereteDictonaries("verifica_vetor_recursivo.bob")
+    genereteDictonaries("test2.bob")
     mainFunction = functionHierarchy['main']
     interpreter(mainFunction)
 
@@ -207,13 +207,29 @@ def resolveFunction(optExp, env: dict):
             resolveExp(argsList, operands, operators, types, env)
             t = str(operands[0]).replace("\"", "")
             currentId = args.__dict__['children']['exp'].__dict__['children']['exp2'].__dict__['children']['id']
-            env[currentId][1] = t
-            if t == "int":
-                env[currentId][2] = int(input())
-            elif t == "float":
-                env[currentId][2] = float(input())
+            if isinstance(currentId, NodeAST):
+                currentId = currentId.__dict__['children']['id']
+                t = str(args.__dict__['children']['exp'].__dict__['children']["exp1"].__dict__['children']['string']).replace("\"", "")
+                index = args.__dict__['children']['exp'].__dict__['children']['exp2'].__dict__['children']['exp'].__dict__['children']
+                if "id" in index.keys():
+                    index = env[index['id']][2]
+                else:
+                    index = int(index[t])
+                env[currentId][1] = "array"
+                if t == "int":
+                    env[currentId][2][index] = int(input())
+                elif t == "float":
+                    env[currentId][2][index] = float(input())
+                else:
+                    env[currentId][2][index] = input()
             else:
-                env[currentId][2] = input()
+                env[currentId][1] = t
+                if t == "int":
+                    env[currentId][2] = int(input())
+                elif t == "float":
+                    env[currentId][2] = float(input())
+                else:
+                    env[currentId][2] = input()
     else:
         function = functionHierarchy[currentFunctionId]
         newEnv = deepcopy(env)
@@ -248,7 +264,10 @@ def resolveFunction(optExp, env: dict):
 def resolveArray(exp, env):
     if "id" in exp.keys():
         currentId = exp["id"].__dict__['children']['id']
-        sizeArray = exp['exp'].__dict__['children']['int']
+        if "id" in exp['exp'].__dict__['children'].keys():
+            sizeArray = env[exp['exp'].__dict__['children']['id']][2]
+        else:
+            sizeArray = exp['exp'].__dict__['children']['int']
         env[currentId][0] = "array"
         env[currentId][1] = sizeArray
         env[currentId][2] = [None for i in range(int(sizeArray))]

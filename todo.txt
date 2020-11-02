@@ -5,7 +5,7 @@
 5 - Uso de vetores (pronto*)
 6 - Classes
 7 - ForEach (pronto*)
-8 - scanf (pronto*) COM VETOR AINDA NÃO PRONTO
+8 - scanf (pronto*)
 9 - do while (pronto*)
 10 - break, return e continue (DA UMA REPASSADA NESSE)
 11 - new classe

@@ -1,24 +1,14 @@
-# o teste abaixo eh o mais chato!
+def main(; vet, t, i, j) {
+    t = 0;
+    print("Digite o tamanho do vetor: ");
+    scanf("int", t);
+    vet[t];
+    for(i = 0; i < t; i++) {
+        print("Digite o valor da posição " + i);
+        scanf("int", vet[i]);
+    }
 
-45as
-
-
-// teste do lexico
-# comentario eh assim
-
-"teste do string"
-"sjdfh \" \n""as"
-
-
-class a :
-{
-    var x == a not b;
-    foreach)i++) 45.45.
-    -12.4556e45
-    def a () {
-
+    foreach j in vet {
+        print(j);
     }
 }
-
-12.56
-13
