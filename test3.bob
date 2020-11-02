@@ -1,6 +1,5 @@
-class a {
-    var x;
-    def a () {
-        
+def main(; a, b) {
+    for (a = 0; a < 10; a++) {
+        print(a);
     }
-} 
+}

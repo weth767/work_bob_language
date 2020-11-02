@@ -4,7 +4,6 @@ def verifica_vetor (vet, tamanho, index ; i) {
         index++;
         verifica_vetor(vet, tamanho, index);
     }
-
 }
 def main(; vet) {
     vet[5];

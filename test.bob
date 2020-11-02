@@ -1,16 +1,13 @@
-class Baskara {
-    static var instanciasCriadas;
-    var a, b, c;
-    static def inicializa();
-    def Baskara(a, b, c);
-    def calculaRaizes();
-}
-
-def Baskara::inicializa() {
-    instanciasCriadas = 0;
-}
-
 def main (; a, b, c, d) {
-    Baskara->inicializa();
-    #b = new Baskara();
+    a[5];
+    a[0] = 3;
+    a[1] = 2;
+    a[2] = 4;
+    a[3] = 1;
+    a[4] = 5;
+    if (a[0] > a[1]) {
+        print("ola");
+    } else {
+        print("oi");
+    }
 }

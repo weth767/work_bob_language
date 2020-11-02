@@ -1,11 +1,22 @@
+"""
+# Desenvolvido por alunos do IFMG Campus Formiga, Curso de Ciência da Computação
+# João Paulo de Souza RA: 0035329
+# Leandro Souza Pinheiro RA: 0015137
+
+"""
+
 from enum import Enum
 
 from tree import classHierarchy, functionHierarchy, classTable, genereteDictonaries
 from parser import NodeAST, AST
 from copy import deepcopy
+import sys
+
 
 stack = []
 
+
+# classes auxiliares
 class CONSTANTS(Enum):
     MAX_STACK = 10000
 
@@ -23,11 +34,26 @@ class INTERNAL_FUNCTIONS(Enum):
 
 
 def start():
-    genereteDictonaries("test2.bob")
+    # gena os dicionarios que contem as hierarquias
+    params = sys.argv
+    filename = ""
+    if len(params) == 3 and params[1] == "-f":
+        filename = params[2]
+    else:
+        print("O formato correto é python3 interpreter.py -f 'nome_do_arquivo.bob'")
+        exit()
+    genereteDictonaries(filename)
+    # busca a função main
+    if "main" not in functionHierarchy.keys():
+        print("Método principal não encontrado!")
+        exit()
+    # busca a função main
     mainFunction = functionHierarchy['main']
+    # manda interpretar a partir dela
     interpreter(mainFunction)
 
 
+# Método auxiliar para checar os tipos de dados
 def __resolveType(value):
     t = 'string'
     if type(value) == bool:
@@ -36,11 +62,13 @@ def __resolveType(value):
         t = 'int'
     elif type(value) == float:
         t = 'float'
+    # quando for lista não retorna o tipo e sim seu tamanho, já que lista é heterogenea
     elif type(value) == list:
         t = str(len(value))
     return t
 
 
+# método para adicionar ambientes na pilha de execução
 def __stack_control_add(env):
     if len(stack) >= CONSTANTS.MAX_STACK.value:
         print("stack overflow error")
@@ -48,6 +76,7 @@ def __stack_control_add(env):
     stack.append(env)
 
 
+# método para remover ambientes da pilha de execução
 def __stack_control_remove():
     if len(stack) == 1:
         print("stack underflow error")
@@ -58,6 +87,7 @@ def __stack_control_remove():
             stack[-1][key] = removeEnv[key]
 
 
+# método para resolver o principio de comando
 def resolveNodeCommand(nodeCommand, commandList):
     if nodeCommand is None:
         return
@@ -96,6 +126,7 @@ def resolveOperation(operands, operators, types):
             t = 'string'
         return value, t
 
+    # verificação para arrays contidos nos operands(ocorre em operações com array)
     while True:
         index = -1
         for i in range(len(operands)):
@@ -114,6 +145,7 @@ def resolveOperation(operands, operators, types):
         else:
             break
 
+    # separa as operações aritmeticas das logicas
     if ("+" in operands) or ("-" in operands) or ("*" in operands) or ('/' in operands) \
             or ('++' in operands) or ('--' in operands):
         return resolveArithmeticOperation(operands, operators, types)
@@ -187,10 +219,13 @@ def resolveArithmeticOperation(operands, operators, types):
     return result, t
 
 
+# método para resolver as funções
 def resolveFunction(optExp, env: dict):
     currentFunctionId = optExp['id'].__dict__['children']['id']
     args = optExp['optArgs'].__dict__['children']['args']
+    # verifica se são as duas funções reservadas
     if currentFunctionId == INTERNAL_FUNCTIONS.PRINT.value:
+        # se for print, pega os argumentos dele e chama o print do python
         if args is not None:
             operands = []
             operators = []
@@ -199,22 +234,32 @@ def resolveFunction(optExp, env: dict):
             result, t = resolveOperation(operands, operators, types)
             print(result)
     elif currentFunctionId == INTERNAL_FUNCTIONS.SCANF.value:
+        # se for scanf, espera por duas entrada, o tipo de dado e a variavel a receber o valor do input
         if args is not None:
             operands = []
             operators = []
             types = []
+            # primeiro pega a lista de argumentos
             argsList = args.__dict__['children']['exp'].__dict__['children']['exp1'].__dict__
+            # resolve a expressão dentro dela
             resolveExp(argsList, operands, operators, types, env)
+            # pega o tipo passado no parametro
             t = str(operands[0]).replace("\"", "")
+            # em seguida pega o id da variavel ou vetor que irá receber o valor do input
             currentId = args.__dict__['children']['exp'].__dict__['children']['exp2'].__dict__['children']['id']
+            # se o id for uma instancia de node, quer dizer que ele é um vetor
             if isinstance(currentId, NodeAST):
                 currentId = currentId.__dict__['children']['id']
+                # pega o tipo do elemento no scanf
                 t = str(args.__dict__['children']['exp'].__dict__['children']["exp1"].__dict__['children']['string']).replace("\"", "")
+                # pega o index do array
                 index = args.__dict__['children']['exp'].__dict__['children']['exp2'].__dict__['children']['exp'].__dict__['children']
+                # verifica se o index é uma variável ou um valor estático
                 if "id" in index.keys():
                     index = env[index['id']][2]
                 else:
                     index = int(index[t])
+                # por fim atribui o tipo e valor com a função input do python
                 env[currentId][1] = "array"
                 if t == "int":
                     env[currentId][2][index] = int(input())
@@ -222,6 +267,7 @@ def resolveFunction(optExp, env: dict):
                     env[currentId][2][index] = float(input())
                 else:
                     env[currentId][2][index] = input()
+            # senão é só uma variável
             else:
                 env[currentId][1] = t
                 if t == "int":
@@ -230,20 +276,28 @@ def resolveFunction(optExp, env: dict):
                     env[currentId][2] = float(input())
                 else:
                     env[currentId][2] = input()
+    # ou se é uma função escrita pelo usuário
     else:
+        # busca a função na hierarquia
         function = functionHierarchy[currentFunctionId]
+        # novo ambiente
         newEnv = deepcopy(env)
         __stack_control_add(newEnv)
+        # verifica se os argumentos são NodeAST, no caso de ter parametro
         if isinstance(args, NodeAST):
+            # então pega os argumentos os estão os parametro
             argsList = args.__dict__['children']['exp'].__dict__
             operands = []
             operators = []
             types = []
+            # resolve eles
             resolveExp(argsList, operands, operators, types, env)
+            # remove as virgulas indesejadas
             while "," in operands : operands.remove(",")
             # pegando as variaveis locais
             for var in function[2]:
                 newEnv[var] = ['var', None, None]
+            # transforma os parametros em variaveis locais da função para ela ter acesso
             for var in range(len(function[1])):
                 f = operands[var]
                 t = __resolveType(f)
@@ -262,6 +316,7 @@ def resolveFunction(optExp, env: dict):
 
 # método para resolver a exp opicional ainda não montada
 def resolveArray(exp, env):
+    # se tiver id nas chaves, quer dizer que é declaração do array
     if "id" in exp.keys():
         currentId = exp["id"].__dict__['children']['id']
         if "id" in exp['exp'].__dict__['children'].keys():
@@ -271,7 +326,9 @@ def resolveArray(exp, env):
         env[currentId][0] = "array"
         env[currentId][1] = sizeArray
         env[currentId][2] = [None for i in range(int(sizeArray))]
+    # senão é o array recebendo um valor
     elif "exp1" in exp.keys() and "exp2" in exp.keys():
+        # resolve ambas as expressões
         currentId = exp['exp1'].__dict__['children']['id'].__dict__['children']['id']
         operands1 = []
         operators1 = []
@@ -282,22 +339,28 @@ def resolveArray(exp, env):
         types2 = []
         resolveExp(exp['exp2'].__dict__, operands2, operators2, types2, env)
         value = operands2[0]
+        # converte os tipos de dados do array e variavel
         if types2[0] == 'int':
             value = int(value)
         elif types2[0] == 'float':
             value = float(value)
         array = operands1[0]
         index = operands1[1]
+        # se o tipo do valor é igual uma lista, então é um array na posição recebendo outro array em outra posição
         if type(value) == list:
             index2 = operands2[1]
             array[index] = value[index2]
         else:
+            # senão é o array recebendo um valor simples ou variavel
             array[index] = value
+        # atualiza os dados do array no ambiente
         env[currentId][2] = array
     elif "operator" in exp.keys() and "exp1" in exp.keys():
+        # para verificação de ++ e --
         operands = []
         operators = []
         types = []
+        # resolve a expressão e verifica qual o tipo deve ser feito
         resolveExp(exp['exp1'].__dict__, operands, operators, types, env)
         value = operands[0]
         currentId = exp['exp1'].__dict__['children']['id']
@@ -331,28 +394,34 @@ def resolveOptExp(optExp, env: dict):
             operators = []
             types = []
             currentId = optExp["id"].__dict__['children']['id']
+            # expressão precisa ser resolvida
             resolveExp(optExp["exp"].__dict__, operands, operators, types, env)
             result, t = resolveOperation(operands, operators, types)
             env[currentId][1] = t
             env[currentId][2] = result
     else:
+        # caso não verificou como operações ou atribuição, resolve como função o id
         if "optArgs" in optExp:
             resolveFunction(optExp, env)
         else:
+            # senão resolve como array
             resolveArray(optExp, env)
 
 
-# método para resolver o comando
+# método para resolver a expressão
 def resolveExp(exp, operands, operators, types, env):
     if exp is None:
         return
     else:
+        # faz recursão até encontrar os id ou valores simples
         currentExp = exp['children']
         if "exp1" in currentExp.keys():
             resolveExp(currentExp['exp1'].__dict__, operands, operators, types, env)
         if "exp2" in currentExp.keys():
             resolveExp(currentExp['exp2'].__dict__, operands, operators, types, env)
         if "id" in currentExp.keys():
+            # quando encontra os ids, busca o valor deles no env atual
+            # e também seu tipo e joga na lista de operandos para resolução
             if isinstance(currentExp["id"], NodeAST):
                 currentId = currentExp["id"].__dict__["children"]["id"]
             else:
@@ -371,6 +440,8 @@ def resolveExp(exp, operands, operators, types, env):
                 and "exp" not in currentExp.keys() \
                 and "exp1" not in currentExp.keys() \
                 and "exp2" not in currentExp.keys():
+            # se encontrou os valores simples, faz a mesma coisa que os ids,
+            # joga na lista de operandos para resolução
             t = ''
             value = ''
             for key in currentExp:
@@ -383,36 +454,48 @@ def resolveExp(exp, operands, operators, types, env):
             operands.append(value)
             types.append(t)
         if exp['type'] == AST.EXPRESSION:
+            # e por fim verifica qual operação para ser feita
             if "operator" in currentExp:
                 operands.append(currentExp['operator'])
                 types.append("operator")
 
 
+# método para resolver os ifs
 def resolveIf(nodeCommand, env):
     optExp = nodeCommand['optExp'].__dict__['children']
     operands = []
     operators = []
     types = []
+    # resolve a expressão
     resolveExp(optExp['exp'].__dict__, operands, operators, types, env)
+    # pega o resultado na resolução lógica
     result, t = resolveOperation(operands, operators, types)
+    # empilha o ambiente atual e pega um novo
     newEnv = deepcopy(env)
     __stack_control_add(newEnv)
+    # verifica o resultado para saber se vai para o if ou para else, caso exista
     if result == 'True':
         resolveBlock(nodeCommand['commandIf'].__dict__['children']['block'], newEnv)
     elif "commandElse" in nodeCommand:
         resolveBlock(nodeCommand['commandElse'].__dict__['children']['block'], newEnv)
+    # depois remove o ambiente da pilha
     __stack_control_remove()
 
 
+# método para resolver o comando while
 def resolveWhile(nodeCommand, env):
     optExp = nodeCommand['optExp'].__dict__['children']
     operands = []
     operators = []
     types = []
+    # resolve a expressão
     resolveExp(optExp['exp'].__dict__, operands, operators, types, env)
+    # pega o resultado
     result, t = resolveOperation(operands, operators, types)
+    # empilha o novo ambiente
     newEnv = deepcopy(env)
     __stack_control_add(newEnv)
+    # enquanto o resultado for true, executa o bloco, pegando o novo resultado a cada final de iteração
     while result == 'True':
         resolveBlock(nodeCommand['command'].__dict__['children']['block'], stack[-1])
         operands = []
@@ -420,16 +503,18 @@ def resolveWhile(nodeCommand, env):
         types = []
         resolveExp(optExp['exp'].__dict__, operands, operators, types, stack[-1])
         result, t = resolveOperation(operands, operators, types)
+    # no fim remove o ambiente atual
     __stack_control_remove()
 
 
+# método para resolver o laço for
 def resolveFor(nodeCommand, env):
     newEnv = deepcopy(env)
     __stack_control_add(newEnv)
     operands1 = []
     operators1 = []
     types1 = []
-    # primeira parte do for
+    # primeira parte do for, onde tem a atribuição inicial
     exp1 = nodeCommand['optExp1'].__dict__['children']['exp'].__dict__
     currentId = exp1['children']['id'].__dict__['children']['id']
     resolveExp(exp1['children']['exp'].__dict__, operands1, operators1, types1, stack[-1])
@@ -441,14 +526,14 @@ def resolveFor(nodeCommand, env):
         stack[-1][currentId][1] = 'float'
     else:
         stack[-1][currentId][1] = 'string'
-    # segunda parte do for
+    # segunda parte do for, onde faz a comparação se já acabou
     exp2 = nodeCommand['optExp2'].__dict__['children']['exp'].__dict__
     operands2 = []
     operators2 = []
     types2 = []
     resolveExp(exp2, operands2, operators2, types2, stack[-1])
     result2, type2 = resolveOperation(operands2, operators2, types2)
-    # terceira parte do for
+    # terceira parte do for, onde tem o incrimento
     exp3 = nodeCommand['optExp3'].__dict__['children']['exp'].__dict__
     operands3 = []
     operators3 = []
@@ -457,6 +542,7 @@ def resolveFor(nodeCommand, env):
         exp3 = exp3['children']['exp'].__dict__
     resolveExp(exp3, operands3, operators3, types3, stack[-1])
     result3, type3 = resolveOperation(operands3, operators3, types3)
+    # executa o laço até que a condição seja falsa, repetindo os passos 2 e 3
     while result2 == "True":
         # resolve o bloco dentro do laço
         resolveBlock(nodeCommand['command'].__dict__['children']['block'], stack[-1])
@@ -479,15 +565,22 @@ def resolveFor(nodeCommand, env):
             exp3 = exp3['children']['exp'].__dict__
         resolveExp(exp3, operands3, operators3, types3, stack[-1])
         result3, type3 = resolveOperation(operands3, operators3, types3)
+    # no final remove o ambiente atual da pilha
     __stack_control_remove()
 
 
+# método para resolver o laço foreach
 def resolveForEach(nodeCommand, env):
     newEnv = deepcopy(env)
+    # pega o nome do iterador e dos valores a iterar
     varName = nodeCommand['iterator'].__dict__['children']['id']
     values = nodeCommand['values'].__dict__['children']['id']
+    # adiciona o ambiente na pilha
     __stack_control_add(newEnv)
+    # realiza o for do python
     for iterator in env[values][2]:
+        # atualizando o tipo iterador e pegando o item relacionado a ele
+        # para manter o env atualizado
         if type(iterator) == int:
             stack[-1][varName][1] = "int"
         elif type(iterator) == float:
@@ -498,25 +591,26 @@ def resolveForEach(nodeCommand, env):
             stack[-1][varName][1] = "string"
         stack[-1][varName][2] = iterator
         block = nodeCommand['command'].__dict__['children']['block']
+        # depois manda executar o bloco de código
         resolveBlock(block, stack[-1])
+    # no fim remove o ambiente da pilha
     __stack_control_remove()
 
 
+# método para resolver o do while
 def resolveDoWhileLoop(nodeCommand, env):
     optExp = nodeCommand['optExp'].__dict__['children']
-    operands = []
-    operators = []
-    types = []
-    resolveExp(optExp['exp'].__dict__, operands, operators, types, env)
-    result, t = resolveOperation(operands, operators, types)
     newEnv = deepcopy(env)
     __stack_control_add(newEnv)
+    # resolve o bloco inicial uma vez
     resolveBlock(nodeCommand['command'].__dict__['children']['block'], stack[-1])
     operands = []
     operators = []
     types = []
+    # verifica a condição de parada
     resolveExp(optExp['exp'].__dict__, operands, operators, types, stack[-1])
     result, t = resolveOperation(operands, operators, types)
+    # se for true, continua resolvendo o bloco
     while result == 'True':
         resolveBlock(nodeCommand['command'].__dict__['children']['block'], stack[-1])
         operands = []
@@ -524,9 +618,11 @@ def resolveDoWhileLoop(nodeCommand, env):
         types = []
         resolveExp(optExp['exp'].__dict__, operands, operators, types, stack[-1])
         result, t = resolveOperation(operands, operators, types)
+    # no final remove o ambiente da pihla
     __stack_control_remove()
 
 
+# método para verificar o comando foi chamado no bob e facilitar a seleção de comandos
 def resolveCommand(command, env: dict):
     # pega o comando
     if command is None:
@@ -582,7 +678,6 @@ def interpreter(functionOrClass):
     for par in functionOrClass[1]:
         env[par] = ['par', None]
     # preparando o env para as classes
-
     __stack_control_add(env)
     # resolve o bloco da função
     resolveBlock(functionOrClass[3], stack[-1])
