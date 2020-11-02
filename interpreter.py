@@ -6,6 +6,9 @@ from copy import deepcopy
 
 stack = []
 
+class CONSTANTS(Enum):
+    MAX_STACK = 10000
+
 
 class INTERNAL_FUNCTIONS(Enum):
     PRINT = "print"
@@ -34,6 +37,23 @@ def __resolveType(value):
     elif type(value) == float:
         t = 'float'
     return t
+
+
+def __stack_control_add(env):
+    if len(stack) >= CONSTANTS.MAX_STACK.value:
+        print("stack overflow error")
+        exit()
+    stack.append(env)
+
+
+def __stack_control_remove():
+    if len(stack) == 1:
+        print("stack underflow error")
+        exit()
+    removeEnv = stack.pop()
+    for key in removeEnv:
+        if key in stack[-1].keys():
+            stack[-1][key] = removeEnv[key]
 
 
 def resolveNodeCommand(nodeCommand, commandList):
@@ -79,6 +99,7 @@ def resolveOperation(operands, operators, types):
         for i in range(len(operands)):
             if type(operands[i]) == list:
                 index = i
+                break
         if index != -1:
             value = operands[index][operands[index + 1]]
             t = __resolveType(value)
@@ -106,7 +127,6 @@ def resolveLogicOperation(operands, operators, types):
         if types[i] == "int" or types[i] == "float" or types[i] == "string" or types[i] == "bool":
             operators.append(str(operands[i]))
         else:
-            # PRECISAMOS VERIFICAR QUANDO TEM QUE ACESSAR A POSIÇÃO DO ARRAY
             if len(operators) == 1:
                 value1 = operators.pop()
                 if operands[i] == "!":
@@ -195,7 +215,7 @@ def resolveFunction(optExp, env: dict):
     else:
         function = functionHierarchy[currentFunctionId]
         newEnv = deepcopy(env)
-        stack.append(newEnv)
+        __stack_control_add(newEnv)
         if isinstance(args, NodeAST):
             argsList = args.__dict__['children']['exp'].__dict__
             operands = []
@@ -208,12 +228,12 @@ def resolveFunction(optExp, env: dict):
                 newEnv[var] = ['var', None, None]
             for var in range(len(function[1])):
                 newEnv[function[1][var]] = ['var', 'int', operands[var]]
-            stack.append(newEnv)
+            __stack_control_add(newEnv)
         else:
             for var in function[2]:
                 newEnv[var] = ['var', None, None]
         resolveBlock(function[3], stack[-1])
-        stack.pop()
+        __stack_control_remove()
 
 
 # método para resolver a exp opicional ainda não montada
@@ -241,7 +261,11 @@ def resolveArray(exp, env):
             value = float(value)
         array = operands1[0]
         index = operands1[1]
-        array[index] = value
+        if type(value) == list:
+            index2 = operands2[1]
+            array[index] = value[index2]
+        else:
+            array[index] = value
         env[currentId][2] = array
 
 
@@ -332,13 +356,13 @@ def resolveIf(nodeCommand, env):
     types = []
     resolveExp(optExp['exp'].__dict__, operands, operators, types, env)
     result, t = resolveOperation(operands, operators, types)
-    stack.append(env)
     newEnv = deepcopy(env)
+    __stack_control_add(newEnv)
     if result == 'True':
         resolveBlock(nodeCommand['commandIf'].__dict__['children']['block'], newEnv)
     elif "commandElse" in nodeCommand:
         resolveBlock(nodeCommand['commandElse'].__dict__['children']['block'], newEnv)
-    stack.pop()
+    __stack_control_remove()
 
 
 def resolveWhile(nodeCommand, env):
@@ -349,7 +373,7 @@ def resolveWhile(nodeCommand, env):
     resolveExp(optExp['exp'].__dict__, operands, operators, types, env)
     result, t = resolveOperation(operands, operators, types)
     newEnv = deepcopy(env)
-    stack.append(newEnv)
+    __stack_control_add(newEnv)
     while result == 'True':
         resolveBlock(nodeCommand['command'].__dict__['children']['block'], stack[-1])
         operands = []
@@ -357,12 +381,12 @@ def resolveWhile(nodeCommand, env):
         types = []
         resolveExp(optExp['exp'].__dict__, operands, operators, types, stack[-1])
         result, t = resolveOperation(operands, operators, types)
-    stack.pop()
+    __stack_control_remove()
 
 
 def resolveFor(nodeCommand, env):
     newEnv = deepcopy(env)
-    stack.append(newEnv)
+    __stack_control_add(newEnv)
     operands1 = []
     operators1 = []
     types1 = []
@@ -416,14 +440,14 @@ def resolveFor(nodeCommand, env):
             exp3 = exp3['children']['exp'].__dict__
         resolveExp(exp3, operands3, operators3, types3, stack[-1])
         result3, type3 = resolveOperation(operands3, operators3, types3)
-    stack.pop()
+    __stack_control_remove()
 
 
 def resolveForEach(nodeCommand, env):
     newEnv = deepcopy(env)
     varName = nodeCommand['iterator'].__dict__['children']['id']
     values = nodeCommand['values'].__dict__['children']['id']
-    stack.append(newEnv)
+    __stack_control_add(newEnv)
     for iterator in env[values][2]:
         if type(iterator) == int:
             stack[-1][varName][1] = "int"
@@ -436,7 +460,7 @@ def resolveForEach(nodeCommand, env):
         stack[-1][varName][2] = iterator
         block = nodeCommand['command'].__dict__['children']['block']
         resolveBlock(block, stack[-1])
-    stack.pop()
+    __stack_control_remove()
 
 
 def resolveDoWhileLoop(nodeCommand, env):
@@ -447,7 +471,7 @@ def resolveDoWhileLoop(nodeCommand, env):
     resolveExp(optExp['exp'].__dict__, operands, operators, types, env)
     result, t = resolveOperation(operands, operators, types)
     newEnv = deepcopy(env)
-    stack.append(newEnv)
+    __stack_control_add(newEnv)
     resolveBlock(nodeCommand['command'].__dict__['children']['block'], stack[-1])
     operands = []
     operators = []
@@ -461,7 +485,7 @@ def resolveDoWhileLoop(nodeCommand, env):
         types = []
         resolveExp(optExp['exp'].__dict__, operands, operators, types, stack[-1])
         result, t = resolveOperation(operands, operators, types)
-    stack.pop()
+    __stack_control_remove()
 
 
 def resolveCommand(command, env: dict):
@@ -516,7 +540,7 @@ def interpreter(functionOrClass):
     # pegando os parametros da função
     for par in functionOrClass[1]:
         env[par] = ['par', None]
-    stack.append(env)
+    __stack_control_add(env)
     # resolve o bloco da função
     resolveBlock(functionOrClass[3], stack[-1])
 
