@@ -1,0 +1,41 @@
+def quick_sort(a, left, right; i, j, x, y, z, w) {
+    i = left;
+    j = right;
+    z = left + right;
+    w = z / 2;
+    x = a[w];
+    while(i <= j) {
+        while(a[i] < x && i < right) {
+            i = i + 1;
+        }
+        while(a[j] > x && j > left) {
+            j = j - 1;
+        }
+        if(i <= j) {
+            y = a[i];
+            a[i] = a[j];
+            a[j] = y;
+            i = i + 1;
+            j = j - 1;
+        }
+    }
+
+    if(j > left) {
+        quick_sort(a, left, j);
+    }
+    if(i < right) {
+        quick_sort(a, i, right);
+    }
+}
+
+def main(; i, vet, x) {
+    vet[5];
+    vet[0] = 3;
+    vet[1] = 1;
+    vet[2] = 4;
+    vet[3] = 5;
+    vet[4] = 2;
+    print(vet);
+    quick_sort(vet, 0, 4);
+    print(vet);
+}

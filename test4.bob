@@ -32,7 +32,7 @@ def main (; a, b, c) {
      a = scanf("float");
      b = scanf("float");
      c = scanf("float");
-     func = Baskara(a,b,c);
+     func = new Baskara(a,b,c);
 
      func->calculaRaizes();
 }

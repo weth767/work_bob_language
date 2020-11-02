@@ -1,0 +1,17 @@
+def verifica_vetor (vet, tamanho, index ; i) {
+    if (index < tamanho) {
+        print(vet[index]);
+        index++;
+        verifica_vetor(vet, tamanho, index);
+    }
+
+}
+def main(; vet) {
+    vet[5];
+    vet[0] = 3;
+    vet[1] = 1;
+    vet[2] = 4;
+    vet[3] = 5;
+    vet[4] = 2;
+    verifica_vetor(vet, 5, 0);
+}

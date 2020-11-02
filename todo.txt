@@ -1,13 +1,13 @@
 1 - Terminar o while(pronto*)
-2 - Utilizar pilha para controle de ambientes (Meio pronto*)
-3 - Fazer o laço FOR (pronto*) verificar -- ou ++ variavel
-4 - Execução de funções(meio pronto*)
+2 - Utilizar pilha para controle de ambientes (pronto*)
+3 - Fazer o laço FOR (pronto*)
+4 - Execução de funções(pronto*)
 5 - Uso de vetores (pronto*)
 6 - Classes
 7 - ForEach (pronto*)
-8 - scanf (pronto*)
+8 - scanf (pronto*) COM VETOR AINDA NÃO PRONTO
 9 - do while (pronto*)
-10 - break, return e continue
+10 - break, return e continue (DA UMA REPASSADA NESSE)
 11 - new classe
 12 - Arrow function
 13 - nil

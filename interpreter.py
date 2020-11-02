@@ -23,7 +23,7 @@ class INTERNAL_FUNCTIONS(Enum):
 
 
 def start():
-    genereteDictonaries("test.bob")
+    genereteDictonaries("verifica_vetor_recursivo.bob")
     mainFunction = functionHierarchy['main']
     interpreter(mainFunction)
 
@@ -36,6 +36,8 @@ def __resolveType(value):
         t = 'int'
     elif type(value) == float:
         t = 'float'
+    elif type(value) == list:
+        t = str(len(value))
     return t
 
 
@@ -227,7 +229,13 @@ def resolveFunction(optExp, env: dict):
             for var in function[2]:
                 newEnv[var] = ['var', None, None]
             for var in range(len(function[1])):
-                newEnv[function[1][var]] = ['var', 'int', operands[var]]
+                f = operands[var]
+                t = __resolveType(f)
+                # se o tipo for um digito(representando o tamanho do array), então sabemos que é array
+                if t.isdigit():
+                    newEnv[function[1][var]] = ['array', t, operands[var]]
+                else:
+                    newEnv[function[1][var]] = ['var', t, operands[var]]
             __stack_control_add(newEnv)
         else:
             for var in function[2]:
@@ -244,7 +252,7 @@ def resolveArray(exp, env):
         env[currentId][0] = "array"
         env[currentId][1] = sizeArray
         env[currentId][2] = [None for i in range(int(sizeArray))]
-    elif "exp1" in exp.keys() or "exp2" in exp.keys():
+    elif "exp1" in exp.keys() and "exp2" in exp.keys():
         currentId = exp['exp1'].__dict__['children']['id'].__dict__['children']['id']
         operands1 = []
         operators1 = []
@@ -267,6 +275,18 @@ def resolveArray(exp, env):
         else:
             array[index] = value
         env[currentId][2] = array
+    elif "operator" in exp.keys() and "exp1" in exp.keys():
+        operands = []
+        operators = []
+        types = []
+        resolveExp(exp['exp1'].__dict__, operands, operators, types, env)
+        value = operands[0]
+        currentId = exp['exp1'].__dict__['children']['id']
+        if exp['operator'] == "++":
+            env[currentId][2] = int(float(value)) + 1
+        else:
+            env[currentId][2] = int(float(value)) - 1
+        env[currentId][1] = "int"
 
 
 def resolveOptExp(optExp, env: dict):
@@ -321,7 +341,7 @@ def resolveExp(exp, operands, operators, types, env):
             t = env[currentId][1]
             value = env[currentId][2]
             if t == 'int':
-                value = int(value)
+                value = int(float(value))
             elif t == 'float':
                 value = float(value)
             operands.append(value)
@@ -490,6 +510,8 @@ def resolveDoWhileLoop(nodeCommand, env):
 
 def resolveCommand(command, env: dict):
     # pega o comando
+    if command is None:
+        return
     nodeCommand = command.__dict__["children"]
     # verifica qual é o comando
     if "ifConditional" in nodeCommand:
@@ -540,6 +562,8 @@ def interpreter(functionOrClass):
     # pegando os parametros da função
     for par in functionOrClass[1]:
         env[par] = ['par', None]
+    # preparando o env para as classes
+
     __stack_control_add(env)
     # resolve o bloco da função
     resolveBlock(functionOrClass[3], stack[-1])

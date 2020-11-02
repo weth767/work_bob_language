@@ -1,0 +1,56 @@
+def soma(; a, b, c) {
+    print("Digite os dois valores");
+    scanf("float", a);
+    scanf("float", b);
+    c = a + b;
+    print("O resultado deu: " + c);
+}
+
+def subtracao(; a, b, c) {
+    print("Digite os dois valores");
+    scanf("float", a);
+    scanf("float", b);
+    c = a - b;
+    print("O resultado deu: " + c);
+}
+
+def multiplicacao(; a, b, c) {
+    print("Digite os dois valores");
+    scanf("float", a);
+    scanf("float", b);
+    c = a * b;
+    print("O resultado deu: " + c);
+}
+
+def divisao(; a, b, c) {
+    print("Digite os dois valores");
+    scanf("float", a);
+    scanf("float", b);
+    c = a / b;
+    print("O resultado deu: " + c);
+}
+
+def main (; opcao, b, c, d) {
+    opcao = 0;
+    while (opcao != 5) {
+        print("Digite a opção: ");
+        print("1 - Soma: ");
+        print("2 - Subtração: ");
+        print("3 - Multiplicação: ");
+        print("4 - Divisão: ");
+        print("5 - Sair: ");
+        scanf("int", opcao);
+        if (opcao == 1) {
+            soma();
+        }
+        if (opcao == 2) {
+            subtracao();
+        }
+        if (opcao == 3) {
+            multiplicacao();
+        }
+        if (opcao == 4) {
+            divisao();
+        }
+    }
+}
