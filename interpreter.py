@@ -25,6 +25,17 @@ def start():
     interpreter(mainFunction)
 
 
+def __resolveType(value):
+    t = 'string'
+    if type(value) == bool:
+        t = 'bool'
+    elif type(value) == int:
+        t = 'int'
+    elif type(value) == float:
+        t = 'float'
+    return t
+
+
 def resolveNodeCommand(nodeCommand, commandList):
     if nodeCommand is None:
         return
@@ -62,6 +73,24 @@ def resolveOperation(operands, operators, types):
         else:
             t = 'string'
         return value, t
+
+    while True:
+        index = -1
+        for i in range(len(operands)):
+            if type(operands[i]) == list:
+                index = i
+        if index != -1:
+            value = operands[index][operands[index + 1]]
+            t = __resolveType(value)
+            types.insert(index, t)
+            types.pop(index + 1)
+            types.pop(index + 1)
+            operands.insert(index, value)
+            operands.pop(index + 1)
+            operands.pop(index + 1)
+        else:
+            break
+
     if ("+" in operands) or ("-" in operands) or ("*" in operands) or ('/' in operands) \
             or ('++' in operands) or ('--' in operands):
         return resolveArithmeticOperation(operands, operators, types)
@@ -77,6 +106,7 @@ def resolveLogicOperation(operands, operators, types):
         if types[i] == "int" or types[i] == "float" or types[i] == "string" or types[i] == "bool":
             operators.append(str(operands[i]))
         else:
+            # PRECISAMOS VERIFICAR QUANDO TEM QUE ACESSAR A POSIÇÃO DO ARRAY
             if len(operators) == 1:
                 value1 = operators.pop()
                 if operands[i] == "!":
